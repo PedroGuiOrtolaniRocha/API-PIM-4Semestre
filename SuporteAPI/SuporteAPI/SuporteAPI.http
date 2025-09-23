@@ -1,0 +1,6 @@
+@SuporteAPI_HostAddress = http://localhost:5262
+
+POST {{SuporteAPI_HostAddress}}/Message/
+Accept: application/json
+
+###
