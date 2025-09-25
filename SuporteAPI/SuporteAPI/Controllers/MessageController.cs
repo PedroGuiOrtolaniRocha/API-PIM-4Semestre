@@ -16,6 +16,13 @@ public class MessageController : ControllerBase
     [HttpPost(Name = "SendMessage")]
     public Message SendMessage(Message recivied)
     {
+        _logger.LogInformation($"""
+                                Informações mensagem recebida:
+                                \nData/Hora: {recivied.Time} 
+                                \nAutor: {recivied.Author}
+                                \nMensagem: {recivied.MessageText}
+                                """);
+        
         return new Message("bot", $"respondendo para {recivied.Author}");
     }
 }
