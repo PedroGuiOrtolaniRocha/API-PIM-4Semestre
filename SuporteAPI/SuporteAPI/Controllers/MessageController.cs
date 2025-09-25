@@ -23,6 +23,9 @@ public class MessageController : ControllerBase
                                 \nMensagem: {recivied.MessageText}
                                 """);
         
-        return new Message("bot", $"respondendo para {recivied.Author}");
+        return new Message(null,
+            new User(null, "bot", "contact@invalid", "senha123"), 
+            $"respondendo para {recivied.Author}"
+            );
     }
 }
