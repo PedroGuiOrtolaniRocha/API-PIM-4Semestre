@@ -3,9 +3,7 @@ namespace SuporteAPI;
 public class Message
 {
     public DateTime Time { get; }
-
     public string MessageText { get; }
-
     public string Author { get; }
 
     public Message(string author, string messageText)
