@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using SuporteAPI.Models;
+using SuporteAPI.Utils;
 
 namespace SuporteAPI.Controllers;
 
@@ -14,7 +16,7 @@ public class MessageController : ControllerBase
     }
 
     [HttpPost(Name = "SendMessage")]
-    public Message SendMessage(Message recivied)
+    public IActionResult SendMessage(Message recivied)
     {
         _logger.LogInformation($"""
                                 Informações mensagem recebida:
@@ -23,6 +25,6 @@ public class MessageController : ControllerBase
                                 \nMensagem: {recivied.MessageText}
                                 """);
         
-        return new Message("bot", $"respondendo para {recivied.Author}");
+        return Ok(MockUtils.MockMessage);
     }
 }

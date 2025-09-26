@@ -1,8 +1,8 @@
-namespace SuporteAPI;
+namespace SuporteAPI.Models;
 
 public class Ticket
 {
-    public int Id { get; }
+    public int? Id { get; }
     public User RequestingUser { get; }
     public TecRegister TecRegister { get; }
     public bool Active { get; }
