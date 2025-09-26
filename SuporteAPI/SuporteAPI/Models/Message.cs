@@ -1,4 +1,4 @@
-namespace SuporteAPI;
+namespace SuporteAPI.Models;
 
 public class Message
 {

@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using SuporteAPI.Models;
+using SuporteAPI.Utils;
+
 
 namespace SuporteAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class UserController
+public class UserController : ControllerBase
 {
 
     private readonly ILogger<MessageController> _logger;
@@ -15,9 +19,31 @@ public class UserController
     }
 
     [HttpPost(Name = "CreateUser")]
-    public User Post( User user)
+    public IActionResult Post( User user)
     {
-        return new User(user.Id, user.Username,  user.Email, user.PasswordHash);
+        return Ok();
     }
-    
+
+    [HttpPatch(Name = "UpdateUser")]
+    public IActionResult Patch(User user)
+    {
+        return Ok();
+    }
+
+    [HttpGet("{id}" ,Name = "GetUser")]
+    public IActionResult GetUsers()
+    {
+        return Ok(new List<User>()
+        {
+            MockUtils.MockUser, 
+            MockUtils.MockUser
+        });
+    }
+
+    [HttpGet(Name = "GetUserById")]
+    public IActionResult GetUserById(int id)
+    {
+        return Ok(MockUtils.MockUser);
+
+    }  
 }

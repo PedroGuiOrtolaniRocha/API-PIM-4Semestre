@@ -1,3 +1,5 @@
+using SuporteAPI.Models;
+
 namespace SuporteAPI.Repositorys;
 
 public interface IUserRepository

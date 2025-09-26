@@ -1,9 +1,16 @@
+using SuporteAPI.Utils;
+
 namespace SuporteAPI;
 
 public class Program
 {
     public static void Main(string[] args)
     {
+        Console.WriteLine(PasswordUtils.ToHash("teste"));
+        Console.WriteLine(PasswordUtils.ToHash("teste"));
+        Console.WriteLine(PasswordUtils.ToHash("teste"));
+        Console.WriteLine(PasswordUtils.ToHash("teste"));
+        
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.

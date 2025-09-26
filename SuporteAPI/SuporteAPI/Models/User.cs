@@ -1,6 +1,4 @@
-using System.Text.Json.Serialization;
-
-namespace SuporteAPI;
+namespace SuporteAPI.Models;
 
 public class User
 {
