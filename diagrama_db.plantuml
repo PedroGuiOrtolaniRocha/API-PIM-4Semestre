@@ -1,0 +1,56 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class Message {
+   Content: nvarchar(1000)
+   Timestamp: datetime
+   UserId: int
+   TicketId: int
+   Id: int
+}
+class Spec {
+   Name: nvarchar(100)
+   Description: nvarchar(255)
+   Id: int
+}
+class TecRegister {
+   Name: nvarchar(100)
+   Email: nvarchar(100)
+   Area: nvarchar(100)
+   SpecId: int
+   Id: int
+}
+class Ticket {
+   Title: nvarchar(100)
+   Description: nvarchar(255)
+   Status: nvarchar(50)
+   CreatedAt: datetime
+   UpdatedAt: datetime
+   UserId: int
+   TecRegisterId: int
+   Id: int
+}
+class TicketSpecRelation {
+   TicketId: int
+   SpecId: int
+   Id: int
+}
+class User {
+   Name: nvarchar(100)
+   Email: nvarchar(100)
+   PasswordHash: nvarchar(255)
+   Role: nvarchar(50)
+   Id: int
+}
+
+Message --> Ticket : TicketId → Id
+Message --> User   : UserId → Id
+TecRegister --> Spec : SpecId → Id
+Ticket --> TecRegister : TecRegisterId → Id
+Ticket --> User   : UserId → Id
+TicketSpecRelation --> Spec   : SpecId → Id
+TicketSpecRelation --> Ticket : TicketId → Id
+@enduml

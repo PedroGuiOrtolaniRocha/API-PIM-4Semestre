@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Models;
 using SuporteAPI.Utils;
+using SuporteAPI.Repositorys;
 
 
 namespace SuporteAPI.Controllers;
@@ -12,16 +13,20 @@ public class UserController : ControllerBase
 {
 
     private readonly ILogger<MessageController> _logger;
+    private readonly IUserRepository _userRepository;
 
-    public UserController(ILogger<MessageController> logger)
+    public UserController(ILogger<MessageController> logger, IUserRepository userRepository)
     {
         _logger = logger;
+        _userRepository = userRepository;
     }
 
     [HttpPost(Name = "CreateUser")]
-    public IActionResult Post( User user)
+    public async Task<IActionResult> Post( User user)
     {
-        return Ok();
+        user.Id = 0;
+        User resp = await _userRepository.InsertUser(user);
+        return Ok(resp);
     }
 
     [HttpPatch(Name = "UpdateUser")]
@@ -30,17 +35,13 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("{id}" ,Name = "GetUser")]
+    [HttpGet(Name = "GetUsers")]
     public IActionResult GetUsers()
     {
-        return Ok(new List<User>()
-        {
-            MockUtils.MockUser, 
-            MockUtils.MockUser
-        });
+        return Ok(_userRepository.GetUsers());
     }
 
-    [HttpGet(Name = "GetUserById")]
+    [HttpGet("{id}", Name = "GetUserById")]
     public IActionResult GetUserById(int id)
     {
         return Ok(MockUtils.MockUser);

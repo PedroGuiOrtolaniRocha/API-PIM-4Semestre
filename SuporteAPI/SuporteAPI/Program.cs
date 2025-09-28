@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using SuporteAPI.Interfaces;
+using SuporteAPI.Repositorys;
 using SuporteAPI.Utils;
 
 namespace SuporteAPI;
@@ -25,7 +27,10 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        builder.Services.AddSingleton<IChatGenerator, OpenAiChatGenerator>();
+
+        builder.Services.AddDbContext<DbEntity>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IChatGenerator, OpenAiChatGenerator>();
         
         var app = builder.Build();
 
