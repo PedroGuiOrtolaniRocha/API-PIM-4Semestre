@@ -1,15 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SuporteAPI.Models;
 
+[Table("Spec")]
 public class Spec
 {
-    int Id { get; }
-    string Name { get; }
-    string Description { get; }
-
-    public Spec(int id, string name, string description)
-    {
-        Id = id;
-        Name = name;
-        Description = description;
-    }
+    [Key]
+    int Id { get; set; }
+    string Name { get; set; }
+    string Description { get; set; }
 }

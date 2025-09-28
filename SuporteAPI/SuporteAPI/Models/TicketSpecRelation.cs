@@ -1,15 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SuporteAPI.Models;
 
+[Table("TicketSpecRelation")]
 public class TicketSpecRelation
 {
-    public int? Id { get; }
-    public Spec Spec { get; }
-    public Ticket Ticket { get; }
+    [Key]
+    public int Id { get; set; }
+    public int SpecId { get; set; }
+    public int TicketId { get; set; }
     
-    public TicketSpecRelation(Spec spec, Ticket ticket)
-        {
-            
-            Spec = spec;
-            Ticket = ticket;
-        }
 }
