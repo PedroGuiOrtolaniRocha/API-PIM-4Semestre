@@ -7,50 +7,50 @@ CREATE TABLE Spec (
     Description NVARCHAR(255)
 );
 
-CREATE TABLE TecRegister (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Name NVARCHAR(100) NOT NULL,
-    Email NVARCHAR(100) NOT NULL,
-    Area NVARCHAR(100),
-    SpecId INT NOT NULL,
-    FOREIGN KEY (SpecId) REFERENCES Spec(Id)
-);
-
 CREATE TABLE [User] (
     Id INT PRIMARY KEY IDENTITY(1,1),
-    Name NVARCHAR(100) NOT NULL,
+    Username NVARCHAR(100) NOT NULL,
     Email NVARCHAR(100) NOT NULL,
     PasswordHash NVARCHAR(255) NOT NULL,
     Role NVARCHAR(50)
 );
 
+CREATE TABLE TecRegister (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    SpecId INT NOT NULL,
+    UserId INT NOT NULL,
+    FOREIGN KEY (SpecId) REFERENCES Spec(Id),
+    FOREIGN KEY (UserId) REFERENCES [User](Id)
+);
+
 CREATE TABLE Ticket (
     Id INT PRIMARY KEY IDENTITY(1,1),
-    Title NVARCHAR(100) NOT NULL,
+    UserId INT NOT NULL,
+    TecRegisterId INT NOT NULL,
     Description NVARCHAR(255),
+    Title NVARCHAR(100),
     Status NVARCHAR(50),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME,
-    UserId INT NOT NULL,
-    TecRegisterId INT NOT NULL,
     FOREIGN KEY (UserId) REFERENCES [User](Id),
     FOREIGN KEY (TecRegisterId) REFERENCES TecRegister(Id)
 );
 
 CREATE TABLE Message (
     Id INT PRIMARY KEY IDENTITY(1,1),
-    Content NVARCHAR(1000) NOT NULL,
-    Timestamp DATETIME NOT NULL DEFAULT GETDATE(),
-    UserId INT NOT NULL,
-    TicketId INT NOT NULL,
-    FOREIGN KEY (UserId) REFERENCES [User](Id),
-    FOREIGN KEY (TicketId) REFERENCES Ticket(Id)
+    Time DATETIME NOT NULL DEFAULT GETDATE(),
+    UserText NVARCHAR(1000),
+    BotText NVARCHAR(1000),
+    TiketId INT NOT NULL,
+    AuthorId INT NOT NULL,
+    FOREIGN KEY (TiketId) REFERENCES Ticket(Id),
+    FOREIGN KEY (AuthorId) REFERENCES [User](Id)
 );
 
 CREATE TABLE TicketSpecRelation (
     Id INT PRIMARY KEY IDENTITY(1,1),
-    TicketId INT NOT NULL,
     SpecId INT NOT NULL,
-    FOREIGN KEY (TicketId) REFERENCES Ticket(Id),
-    FOREIGN KEY (SpecId) REFERENCES Spec(Id)
+    TicketId INT NOT NULL,
+    FOREIGN KEY (SpecId) REFERENCES Spec(Id),
+    FOREIGN KEY (TicketId) REFERENCES Ticket(Id)
 );
