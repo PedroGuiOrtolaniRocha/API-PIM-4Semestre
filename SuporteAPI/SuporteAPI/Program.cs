@@ -1,3 +1,6 @@
+using Microsoft.Extensions.AI;
+using OpenAI.Chat;
+using SuporteAPI.Interfaces;
 using SuporteAPI.Utils;
 
 namespace SuporteAPI;
@@ -5,13 +8,16 @@ namespace SuporteAPI;
 public class Program
 {
     public static void Main(string[] args)
+
     {
-        Console.WriteLine(PasswordUtils.ToHash("teste"));
-        Console.WriteLine(PasswordUtils.ToHash("teste"));
-        Console.WriteLine(PasswordUtils.ToHash("teste"));
-        Console.WriteLine(PasswordUtils.ToHash("teste"));
+        
         
         var builder = WebApplication.CreateBuilder(args);
+        
+        Environment.SetEnvironmentVariable("AI_URI",builder.Configuration.GetValue<string>( "AI_URI"));
+        Environment.SetEnvironmentVariable("AI_API_KEY", builder.Configuration.GetValue<string>( "AI_API_KEY"));
+        
+        Console.WriteLine(builder.Configuration.GetValue<string>( "Teste"));
 
         // Add services to the container.
 
@@ -19,6 +25,7 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        builder.Services.AddSingleton<IChatGenerator, OpenAiChatGenerator>();
         
         var app = builder.Build();
 
@@ -42,5 +49,7 @@ public class Program
         app.MapControllers();
 
         app.Run();
+        
+        
     }
 }

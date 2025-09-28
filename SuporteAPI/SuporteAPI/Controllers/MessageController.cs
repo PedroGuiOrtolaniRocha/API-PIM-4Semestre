@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
 using SuporteAPI.Models;
 using SuporteAPI.Utils;
+using SuporteAPI.Interfaces;
 
 namespace SuporteAPI.Controllers;
 
@@ -9,22 +11,26 @@ namespace SuporteAPI.Controllers;
 public class MessageController : ControllerBase
 {
     private readonly ILogger<MessageController> _logger;
+    private readonly IChatGenerator _chatGenerator;
 
-    public MessageController(ILogger<MessageController> logger)
+    public MessageController(ILogger<MessageController> logger, IChatGenerator chatGenerator)
     {
+        _chatGenerator = chatGenerator;
         _logger = logger;
     }
 
     [HttpPost(Name = "SendMessage")]
-    public IActionResult SendMessage(Message recivied)
+    public async Task<IActionResult> SendMessage(Message recivied)
     {
         _logger.LogInformation($"""
                                 Informações mensagem recebida:
                                 \nData/Hora: {recivied.Time} 
-                                \nAutor: {recivied.Author}
-                                \nMensagem: {recivied.MessageText}
+                                \nAutor: {recivied.AuthorId}
+                                \nMensagem: {recivied.UserText}
                                 """);
+
+        User author = MockUtils.MockUser;
         
-        return Ok(MockUtils.MockMessage);
+        return Ok( await _chatGenerator.GenerateChatResponseAsync(recivied.UserText, author.Username));
     }
 }

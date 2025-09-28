@@ -1,17 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SuporteAPI.Models;
 
+[Table("User")]
 public class User
 {
-    public int? Id { get; }
-    public string Username { get; }
-    public string Email { get; }
-    public string PasswordHash { get; }
-    
-    public User(int?  id, string username, string email, string passwordHash)
-    {
-        Id = id;
-        Username = username;
-        Email = email;
-        PasswordHash = passwordHash;
-    }
+    [Key]
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
 }

@@ -1,15 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SuporteAPI.Models;
 
+[Table("TecResgister")]
 public class TecRegister
 {
-    public int Id { get; }
-    public Spec Spec { get; }
-    public User User { get; }
-    
-    public TecRegister(int id, Spec spec, User user)
-    {
-        Id = id;
-        Spec = spec;
-        User = user;
-    }
+    [Key]
+    public int Id { get; set; }
+    public int SpecId { get; set; }
+    public int UserId { get; set; }
 }

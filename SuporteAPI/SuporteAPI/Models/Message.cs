@@ -1,17 +1,16 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SuporteAPI.Models;
 
+[Table("Message")]
 public class Message
-{
-    public int? Id { get; }
-    public DateTime Time { get; }
-    public string MessageText { get; }
-    public User Author { get; }
+{   
+    [Key]
+    public int Id { get; set; }
+    public DateTime Time { get; set; }
+    public string UserText { get; set; }
+    public string BotText { get; set; }
 
-    public Message(int? id, User author, string messageText)
-    {
-        Id = id;
-        Author = author;
-        MessageText = messageText;
-        Time = DateTime.Now;
-    }
+    public int AuthorId { get; set; }
 }
