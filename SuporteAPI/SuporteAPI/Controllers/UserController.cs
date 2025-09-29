@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Models;
+using SuporteAPI.DTO;
+using SuporteAPI.Interface;
 using SuporteAPI.Utils;
 using SuporteAPI.Repositorys;
 
@@ -26,25 +28,53 @@ public class UserController : ControllerBase
     {
         user.Id = 0;
         User resp = await _userRepository.InsertUser(user);
-        return Ok(resp);
+
+        if (resp != null)
+        {
+            return Ok(new UserDTO(resp));
+        }
+        
+        return BadRequest("Email e username devem ser únicos");
     }
 
     [HttpPatch(Name = "UpdateUser")]
-    public IActionResult Patch(User user)
+    public async Task<IActionResult> Patch(User user)
     {
-        return Ok();
+        User? oldUser = await _userRepository.GetUserById(user.Id);
+        if (user != null)
+        {
+            if (user.PasswordHash != oldUser.PasswordHash)
+            {
+                user.PasswordHash = PasswordUtils.ToHash(user.PasswordHash);
+            }
+            
+            var resp = await _userRepository.UpdateUser(user);
+
+            if (resp != null)
+            {
+                return Ok(new UserDTO(user));
+            }
+        }
+        
+        return NotFound();
     }
 
     [HttpGet(Name = "GetUsers")]
-    public IActionResult GetUsers()
+    public async Task<IActionResult> GetUsers()
     {
-        return Ok(_userRepository.GetUsers());
+        List<UserDTO> users = UserDTO.ToDTO(await _userRepository.GetUsers());
+        return Ok(users);
     }
 
     [HttpGet("{id}", Name = "GetUserById")]
-    public IActionResult GetUserById(int id)
+    public async Task<IActionResult> GetUserById(int id)
     {
-        return Ok(MockUtils.MockUser);
+        User? user = await _userRepository.GetUserById(id);
+        if (user != null)
+        {
+            return Ok(new UserDTO(user));
+        }
+        return NotFound();
 
     }  
 }

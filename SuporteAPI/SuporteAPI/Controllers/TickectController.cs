@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SuporteAPI.Interface;
 using SuporteAPI.Models;
 using SuporteAPI.Utils;
 
@@ -8,25 +9,31 @@ namespace SuporteAPI.Controllers;
 [Route("[controller]")]
 public class TickectController: ControllerBase
 {
-    [HttpGet(Name = "GetTickects")]
-    public IActionResult GetAllTickects()
+    private readonly ITicketRepository _ticketRepository;
+    public TickectController(ITicketRepository ticketRepository)
     {
-        return Ok();
+        _ticketRepository = ticketRepository;
+    }
+    
+    [HttpGet(Name = "GetTickects")]
+    public async Task<IActionResult> GetAllTickects()
+    {
+        return Ok(await _ticketRepository.GetAllTickets());
     }
 
     [HttpGet("{id}", Name = "GetTickect")]
-    public IActionResult GetTickect(int id)
+    public async  Task<IActionResult> GetTickect(int id)
     {
-        return Ok();
+        return Ok(await _ticketRepository.GetTicketById(id));
     }
 
-    [HttpPost(Name = "PostTickect")]
-    public IActionResult PostTickect([FromBody] Ticket ticket)
+    [HttpPost(Name = "PostTicket")]
+    public async Task<IActionResult> PostTickect([FromBody] Ticket ticket)
     {
-        return Ok();
+        return Ok(await _ticketRepository.CreateTicket(ticket));
     }
 
-    [HttpPatch("{id}/finish", Name = "FinishTickect")]
+    [HttpPatch("{id}/finish", Name = "FinishTicket")]
     public IActionResult FinishTickect(int id)
     {
         return Ok();
