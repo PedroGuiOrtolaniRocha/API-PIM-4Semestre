@@ -1,4 +1,6 @@
 @startuml
+top to bottom direction
+skinparam linetype ortho
 
 class Ticket {
   +Id: int
@@ -47,12 +49,12 @@ class TecRegister {
   +SpecId: int
 }
 
-User "1" -- "0..*" Ticket : cria >
-User "1" -- "0..*" Message : envia >
-Ticket "1" -- "0..*" Message : contém >
-Ticket "1" -- "0..*" TicketSpecRelation : possui >
-Spec "1" -- "0..*" TicketSpecRelation : relacionado >
-TecRegister "1" -- "1" Spec : possui >
-Ticket "1" -- "1" TecRegister : técnico >
+User "1" --> "0..*" Ticket : cria
+User "1" --> "0..*" Message : envia
+Ticket "1" --> "0..*" Message : contém
+Ticket "1" --> "0..*" TicketSpecRelation : possui
+Spec "1" --> "0..*" TicketSpecRelation : relacionado
+TecRegister "1" --> "1..1" Spec : possui
+Ticket "1" --> "1" TecRegister : técnico
 
 @enduml

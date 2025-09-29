@@ -3,13 +3,17 @@ using SuporteAPI.Models;
 
 namespace SuporteAPI;
 
-public class DbEntity : DbContext
+public class DbEntity : DbContext 
 {
-    public DbSet<User> Users;
-    public DbSet<Message> Messages;
-    public DbSet<Spec> Specs; 
-    public DbSet<TecRegister> TecRegisters;
-    public DbSet<Ticket> Tickets;
-    public DbSet<TicketSpecRelation> TicketSpecRelations;
-    
+    public DbSet<User> Users {get; set;}
+    public DbSet<Message> Messages {get; set;}
+    public DbSet<Spec> Specs {get; set;}
+    public DbSet<TecRegister> TecRegisters {get; set;}
+    public DbSet<Ticket> Tickets {get; set;}
+    public DbSet<TicketSpecRelation> TicketSpecRelations {get; set;}
+
+    public DbEntity(DbContextOptions<DbEntity> options) : base(options)
+    {
+        
+    }
 }

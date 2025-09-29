@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Models;
+using SuporteAPI.DTO;
+using SuporteAPI.Interface;
 using SuporteAPI.Utils;
+using SuporteAPI.Repositorys;
 
 
 namespace SuporteAPI.Controllers;
@@ -12,38 +15,66 @@ public class UserController : ControllerBase
 {
 
     private readonly ILogger<MessageController> _logger;
+    private readonly IUserRepository _userRepository;
 
-    public UserController(ILogger<MessageController> logger)
+    public UserController(ILogger<MessageController> logger, IUserRepository userRepository)
     {
         _logger = logger;
+        _userRepository = userRepository;
     }
 
     [HttpPost(Name = "CreateUser")]
-    public IActionResult Post( User user)
+    public async Task<IActionResult> Post( User user)
     {
-        return Ok();
+        user.Id = 0;
+        User resp = await _userRepository.InsertUser(user);
+
+        if (resp != null)
+        {
+            return Ok(new UserDTO(resp));
+        }
+        
+        return BadRequest("Email e username devem ser únicos");
     }
 
     [HttpPatch(Name = "UpdateUser")]
-    public IActionResult Patch(User user)
+    public async Task<IActionResult> Patch(User user)
     {
-        return Ok();
-    }
-
-    [HttpGet("{id}" ,Name = "GetUser")]
-    public IActionResult GetUsers()
-    {
-        return Ok(new List<User>()
+        User? oldUser = await _userRepository.GetUserById(user.Id);
+        if (user != null)
         {
-            MockUtils.MockUser, 
-            MockUtils.MockUser
-        });
+            if (user.PasswordHash != oldUser.PasswordHash)
+            {
+                user.PasswordHash = PasswordUtils.ToHash(user.PasswordHash);
+            }
+            
+            var resp = await _userRepository.UpdateUser(user);
+
+            if (resp != null)
+            {
+                return Ok(new UserDTO(user));
+            }
+        }
+        
+        return NotFound();
     }
 
-    [HttpGet(Name = "GetUserById")]
-    public IActionResult GetUserById(int id)
+    [HttpGet(Name = "GetUsers")]
+    public async Task<IActionResult> GetUsers()
     {
-        return Ok(MockUtils.MockUser);
+        List<UserDTO> users = UserDTO.ToDTO(await _userRepository.GetUsers());
+        return Ok(users);
+    }
+
+    [HttpGet("{id}", Name = "GetUserById")]
+    public async Task<IActionResult> GetUserById(int id)
+    {
+        User? user = await _userRepository.GetUserById(id);
+        if (user != null)
+        {
+            return Ok(new UserDTO(user));
+        }
+        return NotFound();
 
     }  
 }

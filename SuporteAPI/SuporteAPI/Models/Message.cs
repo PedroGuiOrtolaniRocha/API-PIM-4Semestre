@@ -6,11 +6,10 @@ namespace SuporteAPI.Models;
 [Table("Message")]
 public class Message
 {   
-    [Key]
     public int Id { get; set; }
     public DateTime Time { get; set; }
     public string UserText { get; set; }
     public string BotText { get; set; }
-
-    public int AuthorId { get; set; }
+    public int TicketId { get; set; }
+    public int UserId { get; set; }
 }
