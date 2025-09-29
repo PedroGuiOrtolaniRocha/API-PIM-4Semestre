@@ -1,32 +1,11 @@
 @startuml
-top to bottom direction
-skinparam linetype ortho
-
-class Ticket {
-  +Id: int
-  +Title: string
-  +Description: string
-  +Status: string
-  +CreatedAt: DateTime
-  +UpdatedAt: DateTime
-  +UserId: int
-  +TecRegisterId: int
-}
 
 class User {
   +Id: int
-  +Name: string
+  +Username: string
   +Email: string
   +PasswordHash: string
   +Role: string
-}
-
-class Message {
-  +Id: int
-  +Content: string
-  +Timestamp: DateTime
-  +UserId: int
-  +TicketId: int
 }
 
 class Spec {
@@ -35,26 +14,45 @@ class Spec {
   +Description: string
 }
 
-class TicketSpecRelation {
-  +Id: int
-  +TicketId: int
-  +SpecId: int
-}
-
 class TecRegister {
   +Id: int
-  +Name: string
-  +Email: string
-  +Area: string
   +SpecId: int
+  +UserId: int
 }
 
-User "1" --> "0..*" Ticket : cria
-User "1" --> "0..*" Message : envia
-Ticket "1" --> "0..*" Message : contém
-Ticket "1" --> "0..*" TicketSpecRelation : possui
-Spec "1" --> "0..*" TicketSpecRelation : relacionado
-TecRegister "1" --> "1..1" Spec : possui
-Ticket "1" --> "1" TecRegister : técnico
+class Ticket {
+  +Id: int
+  +UserId: int
+  +TecRegisterId: int
+  +Description: string
+  +Title: string
+  +Status: string
+  +CreatedAt: DateTime
+  +UpdatedAt: DateTime
+}
+
+class Message {
+  +Id: int
+  +Time: DateTime
+  +UserText: string
+  +BotText: string
+  +TiketId: int
+  +AuthorId: int
+}
+
+class TicketSpecRelation {
+  +Id: int
+  +SpecId: int
+  +TicketId: int
+}
+
+TecRegister "1" -- "1" Spec : possui >
+TecRegister "1" -- "1" User : pertence >
+Ticket "1" -- "1" User : criado por >
+Ticket "1" -- "1" TecRegister : técnico >
+Message "1" -- "1" Ticket : pertence >
+Message "1" -- "1" User : autor >
+TicketSpecRelation "1" -- "1" Ticket : refere-se >
+TicketSpecRelation "1" -- "1" Spec : refere-se >
 
 @enduml

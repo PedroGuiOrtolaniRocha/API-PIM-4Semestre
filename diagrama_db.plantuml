@@ -1,4 +1,62 @@
 @startuml
+
+class User {
+   +Id: int
+   +Username: string
+   +Email: string
+   +PasswordHash: string
+   +Role: string
+}
+
+class Spec {
+   +Id: int
+   +Name: string
+   +Description: string
+}
+
+class TecRegister {
+   +Id: int
+   +SpecId: int
+   +UserId: int
+}
+
+class Ticket {
+   +Id: int
+   +UserId: int
+   +TecRegisterId: int
+   +Description: string
+   +Title: string
+   +Status: string
+   +CreatedAt: DateTime
+   +UpdatedAt: DateTime
+}
+
+class Message {
+   +Id: int
+   +Time: DateTime
+   +UserText: string
+   +BotText: string
+   +TiketId: int
+   +AuthorId: int
+}
+
+class TicketSpecRelation {
+   +Id: int
+   +SpecId: int
+   +TicketId: int
+}
+
+TecRegister "1" -- "1" Spec : possui >
+TecRegister "1" -- "1" User : pertence >
+Ticket "1" -- "1" User : criado por >
+Ticket "1" -- "1" TecRegister : técnico >
+Message "1" -- "1" Ticket : pertence >
+Message "1" -- "1" User : autor >
+TicketSpecRelation "1" -- "1" Ticket : refere-se >
+TicketSpecRelation "1" -- "1" Spec : refere-se >
+
+@enduml
+@startuml
 top to bottom direction
 skinparam linetype ortho
 
