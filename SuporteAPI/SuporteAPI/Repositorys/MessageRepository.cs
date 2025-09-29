@@ -15,7 +15,7 @@ public class MessageRepository : IMessageRepository
     {
         
         return await _context.Messages
-            .Where(x => x.AuthorId == userId)
+            .Where(x => x.UserId == userId)
             .ToListAsync<Message>();
         
     }
@@ -23,13 +23,13 @@ public class MessageRepository : IMessageRepository
     public async Task<List<Message>> GetMessagesByTicketId(int ticketId)
     {
         return await _context.Messages
-            .Where(x => x.AuthorId == ticketId)
+            .Where(x => x.TicketId == ticketId)
             .ToListAsync<Message>();    
     }
 
     public async Task<Message?> InsertMessage(Message message)
     {
-        User? author = await _context.Users.FirstOrDefaultAsync(x => x.Id == message.AuthorId);
+        User? author = await _context.Users.FirstOrDefaultAsync(x => x.Id == message.UserId);
         if (author == null)
         {
             return null;

@@ -35,7 +35,6 @@ public class Program
         builder.Services.AddScoped<ITicketRepository, TicketRepository>();
         builder.Services.AddScoped<IMessageService, MessageService>();
         builder.Services.AddScoped<IChatGenerator, OpenAiChatGenerator>();
-
         
         var app = builder.Build();
 

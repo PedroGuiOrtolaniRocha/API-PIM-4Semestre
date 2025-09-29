@@ -14,7 +14,7 @@ public class MockUtils
 
     public static Message MockMessage = new()
     {
-        AuthorId = 0,
+        UserId = 0,
         Id = 0,
         UserText = "testando testando 123",
         BotText = "Resposta teste",

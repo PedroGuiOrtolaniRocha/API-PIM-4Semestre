@@ -32,7 +32,7 @@ public class MessageController : ControllerBase
         _logger.LogInformation($"""
                                 Informações mensagem recebida:
                                 \nData/Hora: {recivied.Time} 
-                                \nAutor: {recivied.AuthorId}
+                                \nAutor: {recivied.UserId}
                                 \nMensagem: {recivied.UserText}
                                 """);
 
@@ -41,11 +41,11 @@ public class MessageController : ControllerBase
         {
             updateMsg = new Message()
             {
-                AuthorId = recivied.AuthorId,
+                UserId = recivied.UserId,
                 Time = recivied.Time,
                 BotText = "Algo deu errado, tente novamente mais tarde",
                 UserText = recivied.UserText,
-                TiketId = recivied.TiketId
+                TicketId = recivied.TicketId
             };
         }
 

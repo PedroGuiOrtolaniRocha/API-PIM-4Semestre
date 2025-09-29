@@ -18,8 +18,8 @@ public class MessageDTO
         Time = message.Time;
         UserText = message.UserText;
         BotText = message.BotText;
-        TiketId = message.TiketId;
-        AuthorId = message.AuthorId;
+        TiketId = message.TicketId;
+        AuthorId = message.UserId;
         AuthorName = author.Username;
     }
 }

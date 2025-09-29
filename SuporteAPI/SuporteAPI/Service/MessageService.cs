@@ -23,12 +23,12 @@ public class MessageService : IMessageService
     }
     public async Task<bool> VerifyConditions(Message message)
     {
-        Ticket? ticket = await _ticketRepository.GetTicketById(message.TiketId);
-        User? user = await _userRepository.GetUserById(message.AuthorId);
+        Ticket? ticket = await _ticketRepository.GetTicketById(message.TicketId);
+        User? user = await _userRepository.GetUserById(message.UserId);
         
         if (user != null && 
             ticket != null &&
-            ticket.UserId == message.AuthorId &&
+            ticket.UserId == message.UserId &&
             ticket.Status == "Aberto")
         {
             return true;
@@ -36,14 +36,9 @@ public class MessageService : IMessageService
         return false;
     }
 
-    public async Task<List<Message>> GetChatHistory(Message message)
-    {
-        return await _messageRepository.GetMessagesByTicketId(message.TiketId);
-    }
-
     public async Task<User?> GetAuthor(Message message)
     {
-        return await _userRepository.GetUserById(message.AuthorId);
+        return await _userRepository.GetUserById(message.UserId);
     }
 
     public async Task<Message?> SendMessage(Message message)
@@ -52,8 +47,10 @@ public class MessageService : IMessageService
         {
             return null;
         }
-        User? author = await _userRepository.GetUserById(message.AuthorId);
-        string botResponse = await _chatGenerator.GenerateChatResponseAsync(message.UserText, author.Username, await GetChatHistory(message));
+        User? author = await GetAuthor(message);
+        
+        List<Message> history = await _messageRepository.GetMessagesByTicketId(message.TicketId);
+        string botResponse = await _chatGenerator.GenerateChatResponseAsync(message.UserText, author.Username, history);
         message.BotText = botResponse;
         
         Message messageResp = await _messageRepository.InsertMessage(message);
