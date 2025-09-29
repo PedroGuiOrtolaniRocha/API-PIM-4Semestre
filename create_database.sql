@@ -1,6 +1,7 @@
 CREATE DATABASE SuporteDB;
 USE SuporteDB;
 
+
 CREATE TABLE Spec (
     Id INT PRIMARY KEY IDENTITY(1,1),
     Name NVARCHAR(100) NOT NULL,
@@ -26,14 +27,14 @@ CREATE TABLE TecRegister (
 CREATE TABLE Ticket (
     Id INT PRIMARY KEY IDENTITY(1,1),
     UserId INT NOT NULL,
-    TecRegisterId INT NOT NULL,
+    TecUserId INT NOT NULL,
     Description NVARCHAR(255),
     Title NVARCHAR(100),
     Status NVARCHAR(50),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME,
     FOREIGN KEY (UserId) REFERENCES [User](Id),
-    FOREIGN KEY (TecRegisterId) REFERENCES TecRegister(Id)
+    FOREIGN KEY (TecUserId) REFERENCES [User](Id)
 );
 
 CREATE TABLE Message (
@@ -41,10 +42,10 @@ CREATE TABLE Message (
     Time DATETIME NOT NULL DEFAULT GETDATE(),
     UserText NVARCHAR(1000),
     BotText NVARCHAR(1000),
-    TiketId INT NOT NULL,
-    AuthorId INT NOT NULL,
-    FOREIGN KEY (TiketId) REFERENCES Ticket(Id),
-    FOREIGN KEY (AuthorId) REFERENCES [User](Id)
+    TicketId INT NOT NULL,
+    UserId INT NOT NULL,
+    FOREIGN KEY (TicketId) REFERENCES Ticket(Id),
+    FOREIGN KEY (UserId) REFERENCES [User](Id)
 );
 
 CREATE TABLE TicketSpecRelation (
