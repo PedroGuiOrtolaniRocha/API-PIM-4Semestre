@@ -1,0 +1,43 @@
+FROM mcr.microsoft.com/mssql/server:2022-latest
+
+USER root
+RUN mkdir -p /var/lib/apt/lists/partial \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y curl apt-transport-https gnupg \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools unixodbc-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+ENV PATH="$PATH:/opt/mssql-tools/bin"
+
+USER mssql
+
+COPY create_db.sql /create_db.sql
+COPY create_tables.sql /create_tables.sql
+COPY create_samples.sql /create_samples.sql
+
+ENV SA_PASSWORD=Teste&&987!
+ENV ACCEPT_EULA=Y
+ENV MSSQL_PID=Express
+
+EXPOSE 1433
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=10 CMD /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -Q 'SELECT 1' || exit 1
+
+CMD /bin/bash -c "\
+/opt/mssql/bin/sqlservr & \
+for i in {1..60}; do \
+  /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -Q 'SELECT 1' && break; \
+  sleep 1; \
+ done; \
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -i /create_db.sql; \
+echo 'Databases criados:'; \
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -Q 'SELECT name FROM sys.databases'; \
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -i /create_tables.sql; \
+echo 'Tabelas criadas em SuporteDB:'; \
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -d SuporteDB -Q 'SELECT name FROM sys.tables'; \
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -i /create_samples.sql; \
+echo 'Exemplos inseridos em SuporteDB.'; \
+wait"

@@ -9,28 +9,6 @@ API para gerenciamento de tickets, usuários, técnicos, mensagens e integraçã
 - SQL Server
 - Git
 
-## Instalação e Execução
-
-1. **Clone o repositório**
-   ```sh
-   git clone https://github.com/seu-usuario/API-PIM-4Semestre.git
-   cd API-PIM-4Semestre/SuporteAPI/SuporteAPI
-   ```
-2. **Restaure os pacotes**
-   ```sh
-   dotnet restore
-   ```
-3. **Configure o ambiente**
-   - Edite `appsettings.Development.json` com sua string de conexão e chaves de API.
-4. **Compile o projeto**
-   ```sh
-   dotnet build
-   ```
-5. **Execute a API**
-   ```sh
-   dotnet run
-   ```
-   Acesse em `http://localhost:5262`.
 
 ## Testes de Endpoints
 

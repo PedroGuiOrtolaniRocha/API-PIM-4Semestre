@@ -1,12 +1,12 @@
-CREATE DATABASE SuporteDB;
 USE SuporteDB;
-
+GO
 
 CREATE TABLE Spec (
     Id INT PRIMARY KEY IDENTITY(1,1),
     Name NVARCHAR(100) NOT NULL,
     Description NVARCHAR(255)
 );
+GO
 
 CREATE TABLE [User] (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -15,6 +15,7 @@ CREATE TABLE [User] (
     PasswordHash NVARCHAR(255) NOT NULL,
     Role NVARCHAR(50)
 );
+GO
 
 CREATE TABLE TecRegister (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -23,19 +24,22 @@ CREATE TABLE TecRegister (
     FOREIGN KEY (SpecId) REFERENCES Spec(Id),
     FOREIGN KEY (UserId) REFERENCES [User](Id)
 );
+GO
 
 CREATE TABLE Ticket (
     Id INT PRIMARY KEY IDENTITY(1,1),
     UserId INT NOT NULL,
-    TecUserId INT NOT NULL,
+    TecUserId INT,
     Description NVARCHAR(255),
-    Title NVARCHAR(100),
+    Resolution NVARCHAR(255),
+    Title NVARCHAR(100) NOT NULL,
     Status NVARCHAR(50),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME,
     FOREIGN KEY (UserId) REFERENCES [User](Id),
     FOREIGN KEY (TecUserId) REFERENCES [User](Id)
 );
+GO
 
 CREATE TABLE Message (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -47,6 +51,7 @@ CREATE TABLE Message (
     FOREIGN KEY (TicketId) REFERENCES Ticket(Id),
     FOREIGN KEY (UserId) REFERENCES [User](Id)
 );
+GO
 
 CREATE TABLE TicketSpecRelation (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -55,3 +60,5 @@ CREATE TABLE TicketSpecRelation (
     FOREIGN KEY (SpecId) REFERENCES Spec(Id),
     FOREIGN KEY (TicketId) REFERENCES Ticket(Id)
 );
+GO
+

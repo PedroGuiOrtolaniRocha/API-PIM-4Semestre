@@ -1,10 +1,9 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Models;
 using SuporteAPI.DTO;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Service;
 using SuporteAPI.Utils;
-using SuporteAPI.Repositorys;
 
 
 namespace SuporteAPI.Controllers;
@@ -15,66 +14,62 @@ public class UserController : ControllerBase
 {
 
     private readonly ILogger<MessageController> _logger;
-    private readonly IUserRepository _userRepository;
+    private readonly IUserService _userService;
 
-    public UserController(ILogger<MessageController> logger, IUserRepository userRepository)
+    public UserController(ILogger<MessageController> logger, IUserService userService)
     {
         _logger = logger;
-        _userRepository = userRepository;
+        _userService = userService;
     }
 
     [HttpPost(Name = "CreateUser")]
-    public async Task<IActionResult> Post( User user)
+    public async Task<IActionResult> Post(User user)
     {
         user.Id = 0;
-        User resp = await _userRepository.InsertUser(user);
-
-        if (resp != null)
+        try
         {
-            return Ok(new UserDTO(resp));
+            var resp = await _userService.InsertUser(user);
+            return Ok(resp);
         }
-        
-        return BadRequest("Email e username devem ser únicos");
+        catch (Exception ex)
+        {
+            throw SuporteApiException.HigienizeException(ex);
+        }
     }
 
     [HttpPatch(Name = "UpdateUser")]
     public async Task<IActionResult> Patch(User user)
     {
-        User? oldUser = await _userRepository.GetUserById(user.Id);
-        if (user != null)
+        try
         {
-            if (user.PasswordHash != oldUser.PasswordHash)
-            {
-                user.PasswordHash = PasswordUtils.ToHash(user.PasswordHash);
-            }
-            
-            var resp = await _userRepository.UpdateUser(user);
-
+            var resp = await _userService.UpdateUser(user);
             if (resp != null)
             {
-                return Ok(new UserDTO(user));
+                return Ok(resp);
             }
+            return NotFound();
         }
-        
-        return NotFound();
+        catch (Exception ex)
+        {
+            throw SuporteApiException.HigienizeException(ex);
+        }
     }
 
     [HttpGet(Name = "GetUsers")]
     public async Task<IActionResult> GetUsers()
     {
-        List<UserDTO> users = UserDTO.ToDTO(await _userRepository.GetUsers());
+        var users = await _userService.GetUsers();
         return Ok(users);
     }
 
     [HttpGet("{id}", Name = "GetUserById")]
     public async Task<IActionResult> GetUserById(int id)
     {
-        User? user = await _userRepository.GetUserById(id);
+        var user = await _userService.GetUserById(id);
         if (user != null)
         {
-            return Ok(new UserDTO(user));
+            return Ok(user);
         }
         return NotFound();
-
-    }  
+    }
 }

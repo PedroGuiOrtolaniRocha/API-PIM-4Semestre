@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using SuporteAPI.Interface;
-using SuporteAPI.Interfaces;
+using SuporteAPI.Interface.Repository;
+using SuporteAPI.Interface.Service;
+using SuporteAPI.Interface.Utils;
 using SuporteAPI.Repositorys;
 using SuporteAPI.Service;
 using SuporteAPI.Utils;
@@ -29,11 +30,16 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         builder.Services.AddDbContext<DbEntity>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+        
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IMessageRepository, MessageRepository>();
         builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+        builder.Services.AddScoped<ISpecRepository, SpecRepository>();
+        
         builder.Services.AddScoped<IMessageService, MessageService>();
+        builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<ISpecService, SpecService>();
+        
         builder.Services.AddScoped<IChatGenerator, OpenAiChatGenerator>();
         
         var app = builder.Build();
@@ -50,10 +56,8 @@ public class Program
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "API do PIM v1");
             c.RoutePrefix = "";
         });
-        
 
         app.UseAuthorization();
-
 
         app.MapControllers();
 

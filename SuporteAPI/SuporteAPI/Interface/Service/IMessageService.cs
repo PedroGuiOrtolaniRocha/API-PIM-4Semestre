@@ -1,11 +1,10 @@
-using SuporteAPI.Interfaces;
 using SuporteAPI.Models;
 
-namespace SuporteAPI.Interface;
+namespace SuporteAPI.Interface.Service;
 
 public interface IMessageService
 {
-    public Task<bool> VerifyConditions(Message message);
+    public Task VerifyConditions(Message message);
 
     public Task<Message?> SendMessage(Message message);
     

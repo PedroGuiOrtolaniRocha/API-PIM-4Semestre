@@ -2,9 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using SuporteAPI.DTO;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Repository;
+using SuporteAPI.Interface.Service;
+using SuporteAPI.Interface.Utils;
 using SuporteAPI.Models;
 using SuporteAPI.Service;
-using SuporteAPI.Interfaces;
+using SuporteAPI.Utils;
 
 namespace SuporteAPI.Controllers;
 
@@ -29,28 +32,24 @@ public class MessageController : ControllerBase
     [HttpPost(Name = "SendMessage")]
     public async Task<IActionResult> SendMessage(Message recivied)
     {
-        _logger.LogInformation($"""
-                                Informações mensagem recebida:
-                                \nData/Hora: {recivied.Time} 
-                                \nAutor: {recivied.UserId}
-                                \nMensagem: {recivied.UserText}
-                                """);
-
-        Message? updateMsg = await _messageService.SendMessage(recivied);
-        if (updateMsg == null)
+        try
         {
-            updateMsg = new Message()
-            {
-                UserId = recivied.UserId,
-                Time = recivied.Time,
-                BotText = "Algo deu errado, tente novamente mais tarde",
-                UserText = recivied.UserText,
-                TicketId = recivied.TicketId
-            };
-        }
+            Message updateMsg = await _messageService.SendMessage(recivied) ?? new Message
+                {
+                    UserId = recivied.UserId,
+                    Time = recivied.Time,
+                    BotText = "Algo deu errado, tente novamente mais tarde",
+                    UserText = recivied.UserText,
+                    TicketId = recivied.TicketId
+                };
+ 
 
-        MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
-        
-        return Ok(response);
+            MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            throw SuporteApiException.HigienizeException(ex);
+        }
     }
 }

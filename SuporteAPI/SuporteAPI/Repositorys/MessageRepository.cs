@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Repository;
 using SuporteAPI.Models;
 
 namespace SuporteAPI.Repositorys;

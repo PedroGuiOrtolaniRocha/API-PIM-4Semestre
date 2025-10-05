@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Repository;
 using SuporteAPI.Models;
 
 namespace SuporteAPI.Repositorys;
@@ -25,6 +26,15 @@ public class UserRepository : IUserRepository
         return user;
     }
     
+    public async Task<User?> GetUserByEmail(string email)
+    {
+        User? user = await _context.Users
+            .Where(x => x.Email == email)
+            .FirstAsync();
+        
+        return user;
+    }
+    
     public async Task<User?> UpdateUser(User user)
     {
         if (_context.Users.Any(u => u.Id == user.Id))
@@ -40,10 +50,6 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            if (_context.Users.Any(u => u.Email == user.Email) || _context.Users.Any(u => u.Username == user.Username))
-            {
-                return null;
-            }
             user.PasswordHash = Utils.PasswordUtils.ToHash(user.PasswordHash);
             var resp = await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -52,8 +58,11 @@ public class UserRepository : IUserRepository
         catch (DbUpdateException ex)
         {
             var sqlException = ex.InnerException;
-            throw;
+            throw sqlException;
         }
-
+    }
+    public async Task<bool> UniqueEmail(string email, int? id = null)
+    {
+        return !await _context.Users.AnyAsync(u => u.Email == email && u.Id != id);
     }
 }
