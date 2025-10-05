@@ -1,8 +1,7 @@
 using SuporteAPI.DTO;
-using SuporteAPI.Interfaces;
 using SuporteAPI.Models;
 
-namespace SuporteAPI.Interface;
+namespace SuporteAPI.Interface.Service;
 
 public interface IUserService
 {

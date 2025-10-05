@@ -1,6 +1,6 @@
 using SuporteAPI.Models;
 
-namespace SuporteAPI.Interface;
+namespace SuporteAPI.Interface.Repository;
 
 public interface IUserRepository
 {

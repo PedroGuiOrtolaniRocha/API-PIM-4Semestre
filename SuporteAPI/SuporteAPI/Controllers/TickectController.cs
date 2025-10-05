@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Repository;
 using SuporteAPI.Models;
 using SuporteAPI.Utils;
 
@@ -30,7 +31,15 @@ public class TickectController: ControllerBase
     [HttpPost(Name = "PostTicket")]
     public async Task<IActionResult> PostTickect([FromBody] Ticket ticket)
     {
-        return Ok(await _ticketRepository.CreateTicket(ticket));
+        ticket.Id = 0;
+        try
+        {
+            return Ok(await _ticketRepository.CreateTicket(ticket));
+        }
+        catch (Exception ex)
+        {
+            throw SuporteApiException.HigienizeException(ex);
+        }
     }
 
     [HttpPatch("{id}/finish", Name = "FinishTicket")]

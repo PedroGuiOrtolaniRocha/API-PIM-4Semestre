@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.AI;
 using OpenAI;
 using System.ClientModel;
-using SuporteAPI.Interfaces;
+using SuporteAPI.Interface.Utils;
 using SuporteAPI.Models;
 
 

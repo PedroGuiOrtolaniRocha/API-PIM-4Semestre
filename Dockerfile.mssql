@@ -16,6 +16,7 @@ USER mssql
 
 COPY create_db.sql /create_db.sql
 COPY create_tables.sql /create_tables.sql
+COPY create_samples.sql /create_samples.sql
 
 ENV SA_PASSWORD=Teste&&987!
 ENV ACCEPT_EULA=Y
@@ -37,4 +38,6 @@ echo 'Databases criados:'; \
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -i /create_tables.sql; \
 echo 'Tabelas criadas em SuporteDB:'; \
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -d SuporteDB -Q 'SELECT name FROM sys.tables'; \
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Teste&&987!' -i /create_samples.sql; \
+echo 'Exemplos inseridos em SuporteDB.'; \
 wait"

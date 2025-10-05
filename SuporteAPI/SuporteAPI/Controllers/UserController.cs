@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Models;
 using SuporteAPI.DTO;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Service;
 using SuporteAPI.Utils;
 
 
@@ -32,7 +33,7 @@ public class UserController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            throw SuporteApiException.HigienizeException(ex);
         }
     }
 
@@ -50,7 +51,7 @@ public class UserController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            throw SuporteApiException.HigienizeException(ex);
         }
     }
 

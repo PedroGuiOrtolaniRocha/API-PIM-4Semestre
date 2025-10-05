@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using SuporteAPI.DTO;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Repository;
+using SuporteAPI.Interface.Service;
+using SuporteAPI.Interface.Utils;
 using SuporteAPI.Models;
 using SuporteAPI.Service;
-using SuporteAPI.Interfaces;
 using SuporteAPI.Utils;
 
 namespace SuporteAPI.Controllers;
@@ -32,17 +34,7 @@ public class MessageController : ControllerBase
     {
         try
         {
-            _logger.LogInformation($"""
-                                    Informações mensagem recebida:
-                                    \nData/Hora: {recivied.Time} 
-                                    \nAutor: {recivied.UserId}
-                                    \nMensagem: {recivied.UserText}
-                                    """);
-
-            Message? updateMsg = await _messageService.SendMessage(recivied);
-            if (updateMsg == null)
-            {
-                updateMsg = new Message()
+            Message updateMsg = await _messageService.SendMessage(recivied) ?? new Message
                 {
                     UserId = recivied.UserId,
                     Time = recivied.Time,
@@ -50,22 +42,14 @@ public class MessageController : ControllerBase
                     UserText = recivied.UserText,
                     TicketId = recivied.TicketId
                 };
-            }
+ 
 
             MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
             return Ok(response);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            if (e.GetType() == typeof(SuporteApiException))
-            {
-                return BadRequest(e.Message);
-
-            }
-            return BadRequest("Algo deu errado com o serviço de mensagens com IA");
+            throw SuporteApiException.HigienizeException(ex);
         }
-        
-
-        
     }
 }

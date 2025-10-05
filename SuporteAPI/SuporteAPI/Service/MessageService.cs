@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using SuporteAPI.Interface;
-using SuporteAPI.Interfaces;
+using SuporteAPI.Interface.Repository;
+using SuporteAPI.Interface.Service;
+using SuporteAPI.Interface.Utils;
 using SuporteAPI.Models;
 using SuporteAPI.Repositorys;
 using SuporteAPI.Utils;
@@ -28,36 +30,46 @@ public class MessageService : IMessageService
         Ticket? ticket = await _ticketRepository.GetTicketById(message.TicketId);
         User? user = await _userRepository.GetUserById(message.UserId);
         
-        if (user != null && 
-            ticket.UserId == message.UserId)
+        if (ticket == null ||
+            ticket.Status != TicketStatus.Aberto)
         {
-            throw new SuporteApiException("Usuário inválido para este ticket");
+            throw new SuporteApiException("Ticket inválido ou chat com IA encerrado");
         }
-
-        if (ticket != null &&
-            ticket.Status == "Aberto")
+        
+        if (user == null || 
+            ticket.UserId != message.UserId)
         {
             throw new SuporteApiException("Usuário inválido para este ticket");
         }
     }
 
-    public async Task<User?> GetAuthor(Message message)
+    public async Task<User> GetAuthor(Message message)
     {
         return await _userRepository.GetUserById(message.UserId);
+        
     }
 
     public async Task<Message?> SendMessage(Message message)
     {
-        await VerifyConditions(message);
+        
+        try
+        {
+            await VerifyConditions(message);
+            
+            User? author = await GetAuthor(message);
+            List<Message> history = await _messageRepository.GetMessagesByTicketId(message.TicketId);
 
-        User? author = await GetAuthor(message);
+            string botResponse = await _chatGenerator.GenerateChatResponseAsync(message.UserText, author.Username, history);
+            message.BotText = botResponse;
+            
+            Message messageResp = await _messageRepository.InsertMessage(message);
+            return messageResp;
+        }
+        catch (Exception e)
+        {
+            throw new SuporteApiException(e.Message);
+        }
         
-        List<Message> history = await _messageRepository.GetMessagesByTicketId(message.TicketId);
-        string botResponse = await _chatGenerator.GenerateChatResponseAsync(message.UserText, author.Username, history);
-        message.BotText = botResponse;
-        
-        Message messageResp = await _messageRepository.InsertMessage(message);
-        return messageResp;
     }
     
 }
