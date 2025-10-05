@@ -29,11 +29,12 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         builder.Services.AddDbContext<DbEntity>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+        
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IMessageRepository, MessageRepository>();
         builder.Services.AddScoped<ITicketRepository, TicketRepository>();
         builder.Services.AddScoped<IMessageService, MessageService>();
+        builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IChatGenerator, OpenAiChatGenerator>();
         
         var app = builder.Build();

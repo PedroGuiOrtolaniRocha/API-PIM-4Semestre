@@ -5,7 +5,7 @@ namespace SuporteAPI.Interface;
 
 public interface IMessageService
 {
-    public Task<bool> VerifyConditions(Message message);
+    public Task VerifyConditions(Message message);
 
     public Task<Message?> SendMessage(Message message);
     

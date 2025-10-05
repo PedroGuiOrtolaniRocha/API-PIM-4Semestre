@@ -1,7 +1,9 @@
+using System.ComponentModel.DataAnnotations;
 using SuporteAPI.Interface;
 using SuporteAPI.Interfaces;
 using SuporteAPI.Models;
 using SuporteAPI.Repositorys;
+using SuporteAPI.Utils;
 
 namespace SuporteAPI.Service;
 
@@ -21,19 +23,22 @@ public class MessageService : IMessageService
         _userRepository = userRepository;
         _chatGenerator = chatGenerator;
     }
-    public async Task<bool> VerifyConditions(Message message)
+    public async Task VerifyConditions(Message message)
     {
         Ticket? ticket = await _ticketRepository.GetTicketById(message.TicketId);
         User? user = await _userRepository.GetUserById(message.UserId);
         
         if (user != null && 
-            ticket != null &&
-            ticket.UserId == message.UserId &&
+            ticket.UserId == message.UserId)
+        {
+            throw new SuporteApiException("Usuário inválido para este ticket");
+        }
+
+        if (ticket != null &&
             ticket.Status == "Aberto")
         {
-            return true;
+            throw new SuporteApiException("Usuário inválido para este ticket");
         }
-        return false;
     }
 
     public async Task<User?> GetAuthor(Message message)
@@ -43,10 +48,8 @@ public class MessageService : IMessageService
 
     public async Task<Message?> SendMessage(Message message)
     {
-        if (!await VerifyConditions(message))
-        {
-            return null;
-        }
+        await VerifyConditions(message);
+
         User? author = await GetAuthor(message);
         
         List<Message> history = await _messageRepository.GetMessagesByTicketId(message.TicketId);

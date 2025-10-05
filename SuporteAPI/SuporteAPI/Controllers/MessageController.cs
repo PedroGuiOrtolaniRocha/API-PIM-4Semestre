@@ -5,6 +5,7 @@ using SuporteAPI.Interface;
 using SuporteAPI.Models;
 using SuporteAPI.Service;
 using SuporteAPI.Interfaces;
+using SuporteAPI.Utils;
 
 namespace SuporteAPI.Controllers;
 
@@ -29,28 +30,42 @@ public class MessageController : ControllerBase
     [HttpPost(Name = "SendMessage")]
     public async Task<IActionResult> SendMessage(Message recivied)
     {
-        _logger.LogInformation($"""
-                                Informações mensagem recebida:
-                                \nData/Hora: {recivied.Time} 
-                                \nAutor: {recivied.UserId}
-                                \nMensagem: {recivied.UserText}
-                                """);
-
-        Message? updateMsg = await _messageService.SendMessage(recivied);
-        if (updateMsg == null)
+        try
         {
-            updateMsg = new Message()
-            {
-                UserId = recivied.UserId,
-                Time = recivied.Time,
-                BotText = "Algo deu errado, tente novamente mais tarde",
-                UserText = recivied.UserText,
-                TicketId = recivied.TicketId
-            };
-        }
+            _logger.LogInformation($"""
+                                    Informações mensagem recebida:
+                                    \nData/Hora: {recivied.Time} 
+                                    \nAutor: {recivied.UserId}
+                                    \nMensagem: {recivied.UserText}
+                                    """);
 
-        MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
+            Message? updateMsg = await _messageService.SendMessage(recivied);
+            if (updateMsg == null)
+            {
+                updateMsg = new Message()
+                {
+                    UserId = recivied.UserId,
+                    Time = recivied.Time,
+                    BotText = "Algo deu errado, tente novamente mais tarde",
+                    UserText = recivied.UserText,
+                    TicketId = recivied.TicketId
+                };
+            }
+
+            MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
+            return Ok(response);
+        }
+        catch (Exception e)
+        {
+            if (e.GetType() == typeof(SuporteApiException))
+            {
+                return BadRequest(e.Message);
+
+            }
+            return BadRequest("Algo deu errado com o serviço de mensagens com IA");
+        }
         
-        return Ok(response);
+
+        
     }
 }
