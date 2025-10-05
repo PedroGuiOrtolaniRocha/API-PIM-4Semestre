@@ -8,16 +8,6 @@ CREATE TABLE Spec (
 );
 GO
 
-CREATE TABLE TecRegister (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Name NVARCHAR(100) NOT NULL,
-    Email NVARCHAR(100) NOT NULL,
-    Area NVARCHAR(100),
-    SpecId INT NOT NULL,
-    FOREIGN KEY (SpecId) REFERENCES Spec(Id)
-);
-GO
-
 CREATE TABLE [User] (
     Id INT PRIMARY KEY IDENTITY(1,1),
     Username NVARCHAR(100) NOT NULL,
@@ -27,36 +17,48 @@ CREATE TABLE [User] (
 );
 GO
 
+CREATE TABLE TecRegister (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    SpecId INT NOT NULL,
+    UserId INT NOT NULL,
+    FOREIGN KEY (SpecId) REFERENCES Spec(Id),
+    FOREIGN KEY (UserId) REFERENCES [User](Id)
+);
+GO
+
 CREATE TABLE Ticket (
     Id INT PRIMARY KEY IDENTITY(1,1),
-    Title NVARCHAR(100) NOT NULL,
+    UserId INT NOT NULL,
+    TecUserId INT,
     Description NVARCHAR(255),
+    Resolution NVARCHAR(255),
+    Title NVARCHAR(100) NOT NULL,
     Status NVARCHAR(50),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     UpdatedAt DATETIME,
-    UserId INT NOT NULL,
-    TecUserId INT NOT NULL,
     FOREIGN KEY (UserId) REFERENCES [User](Id),
-    FOREIGN KEY (TecUserId) REFERENCES TecRegister(Id)
+    FOREIGN KEY (TecUserId) REFERENCES [User](Id)
 );
 GO
 
 CREATE TABLE Message (
     Id INT PRIMARY KEY IDENTITY(1,1),
-    Content NVARCHAR(1000) NOT NULL,
-    Timestamp DATETIME NOT NULL DEFAULT GETDATE(),
-    UserId INT NOT NULL,
+    Time DATETIME NOT NULL DEFAULT GETDATE(),
+    UserText NVARCHAR(1000),
+    BotText NVARCHAR(1000),
     TicketId INT NOT NULL,
-    FOREIGN KEY (UserId) REFERENCES [User](Id),
-    FOREIGN KEY (TicketId) REFERENCES Ticket(Id)
+    UserId INT NOT NULL,
+    FOREIGN KEY (TicketId) REFERENCES Ticket(Id),
+    FOREIGN KEY (UserId) REFERENCES [User](Id)
 );
 GO
 
 CREATE TABLE TicketSpecRelation (
     Id INT PRIMARY KEY IDENTITY(1,1),
-    TicketId INT NOT NULL,
     SpecId INT NOT NULL,
-    FOREIGN KEY (TicketId) REFERENCES Ticket(Id),
-    FOREIGN KEY (SpecId) REFERENCES Spec(Id)
+    TicketId INT NOT NULL,
+    FOREIGN KEY (SpecId) REFERENCES Spec(Id),
+    FOREIGN KEY (TicketId) REFERENCES Ticket(Id)
 );
 GO
+

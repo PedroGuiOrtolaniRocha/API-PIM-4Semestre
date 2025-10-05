@@ -8,5 +8,14 @@ public class SuporteApiException : Exception
     {
         StatusCode = statusCode;
     }
+
+    public static SuporteApiException HigienizeException(Exception ex)
+    {
+        if (ex.GetType() == typeof(SuporteApiException))
+        {
+            return new SuporteApiException(ex.Message);
+        }
+        return new SuporteApiException("Ocorreu um erro inesperado no servidor.", 500);
+    }
     
 }

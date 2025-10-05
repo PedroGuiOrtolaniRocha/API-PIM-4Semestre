@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using SuporteAPI.DTO;
 using SuporteAPI.Interface;
+using SuporteAPI.Interface.Repository;
+using SuporteAPI.Interface.Service;
 using SuporteAPI.Models;
 using SuporteAPI.Utils;
 

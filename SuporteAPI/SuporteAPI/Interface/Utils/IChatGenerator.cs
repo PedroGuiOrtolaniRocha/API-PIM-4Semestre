@@ -1,6 +1,6 @@
 ﻿using SuporteAPI.Models;
 
-namespace SuporteAPI.Interfaces
+namespace SuporteAPI.Interface.Utils
 {
     public interface IChatGenerator
     {
