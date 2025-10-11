@@ -32,24 +32,16 @@ public class MessageController : ControllerBase
     [HttpPost(Name = "SendMessage")]
     public async Task<IActionResult> SendMessage(Message recivied)
     {
-        try
+        Message updateMsg = await _messageService.SendMessage(recivied) ?? new Message
         {
-            Message updateMsg = await _messageService.SendMessage(recivied) ?? new Message
-                {
-                    UserId = recivied.UserId,
-                    Time = recivied.Time,
-                    BotText = "Algo deu errado, tente novamente mais tarde",
-                    UserText = recivied.UserText,
-                    TicketId = recivied.TicketId
-                };
- 
-
-            MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            throw SuporteApiException.HigienizeException(ex);
-        }
+            UserId = recivied.UserId,
+            Time = recivied.Time,
+            BotText = "Algo deu errado, tente novamente mais tarde",
+            UserText = recivied.UserText,
+            TicketId = recivied.TicketId
+        };
+        
+        MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
+        return Ok(response);
     }
 }

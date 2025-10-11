@@ -44,8 +44,8 @@ GO
 CREATE TABLE Message (
     Id INT PRIMARY KEY IDENTITY(1,1),
     Time DATETIME NOT NULL DEFAULT GETDATE(),
-    UserText NVARCHAR(1000),
-    BotText NVARCHAR(1000),
+    UserText NVARCHAR(MAX),
+    BotText NVARCHAR(MAX),
     TicketId INT NOT NULL,
     UserId INT NOT NULL,
     FOREIGN KEY (TicketId) REFERENCES Ticket(Id),
@@ -61,4 +61,3 @@ CREATE TABLE TicketSpecRelation (
     FOREIGN KEY (TicketId) REFERENCES Ticket(Id)
 );
 GO
-

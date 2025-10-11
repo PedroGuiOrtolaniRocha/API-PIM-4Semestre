@@ -31,7 +31,7 @@ public class MessageService : IMessageService
         User? user = await _userRepository.GetUserById(message.UserId);
         
         if (ticket == null ||
-            ticket.Status != TicketStatus.Aberto)
+            ticket.Status != TicketStatus.Aberto.ToString())
         {
             throw new SuporteApiException("Ticket inválido ou chat com IA encerrado");
         }

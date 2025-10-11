@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SuporteAPI.Models;
 
-[Table("TecResgister")]
+[Table("TecRegister")]
 public class TecRegister
 {
     public int Id { get; set; }

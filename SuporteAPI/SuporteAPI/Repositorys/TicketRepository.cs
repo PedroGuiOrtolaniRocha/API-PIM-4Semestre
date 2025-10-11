@@ -42,9 +42,33 @@ public class TicketRepository :  ITicketRepository
 
         return null;
     }
-
     public async Task<Ticket?> UpdateTicket(Ticket ticket)
     {
-        throw new NotImplementedException();
+        var existingTicket = await _context.Tickets.FindAsync(ticket.Id);
+        if (existingTicket == null)
+        {
+            return null;
+        }
+
+        existingTicket.Title = ticket.Title;
+        existingTicket.Description = ticket.Description;
+        existingTicket.Status = ticket.Status;
+        existingTicket.UpdatedAt = DateTime.Now;
+        existingTicket.TecUserId = ticket.TecUserId;
+
+        await _context.SaveChangesAsync();
+        
+        return existingTicket;
     }
+    public async Task<List<Spec>> GetSpecsByTicketId(int ticketId)
+    {
+        return await _context.TicketSpecRelations
+            .Where(rel => rel.TicketId == ticketId)
+            .Join(_context.Specs,
+                  rel => rel.SpecId,
+                  spec => spec.Id,
+                  (rel, spec) => spec)
+            .ToListAsync();
+    }
+    
 }
