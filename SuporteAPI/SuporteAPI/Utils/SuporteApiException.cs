@@ -13,9 +13,9 @@ public class SuporteApiException : Exception
     {
         if (ex.GetType() == typeof(SuporteApiException))
         {
-            return new SuporteApiException(ex.Message);
+            throw new SuporteApiException(ex.Message);
         }
-        return new SuporteApiException("Ocorreu um erro inesperado no servidor.", 500);
+        throw new SuporteApiException("Ocorreu um erro inesperado no servidor.");
     }
     
 }

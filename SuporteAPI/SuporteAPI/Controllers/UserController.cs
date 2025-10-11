@@ -47,7 +47,8 @@ public class UserController : ControllerBase
             {
                 return Ok(resp);
             }
-            return NotFound();
+
+            throw new SuporteApiException("Usuário não encontrado", 404);
         }
         catch (Exception ex)
         {
@@ -70,6 +71,6 @@ public class UserController : ControllerBase
         {
             return Ok(user);
         }
-        return NotFound();
+        throw new SuporteApiException("Usuário não encontrado", 404);
     }
 }
