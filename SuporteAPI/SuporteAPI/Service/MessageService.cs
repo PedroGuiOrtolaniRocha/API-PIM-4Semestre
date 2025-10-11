@@ -58,8 +58,9 @@ public class MessageService : IMessageService
             
             User? author = await GetAuthor(message);
             List<Message> history = await _messageRepository.GetMessagesByTicketId(message.TicketId);
+            string ticketDescription = (await _ticketRepository.GetTicketById(message.TicketId)).Description;
 
-            string botResponse = await _chatGenerator.GenerateChatResponseAsync(message.UserText, author.Username, history);
+            string botResponse = await _chatGenerator.GenerateChatResponseAsync(message.UserText, message.TicketId,ticketDescription,author.Username, history);
             message.BotText = botResponse;
             
             Message messageResp = await _messageRepository.InsertMessage(message);

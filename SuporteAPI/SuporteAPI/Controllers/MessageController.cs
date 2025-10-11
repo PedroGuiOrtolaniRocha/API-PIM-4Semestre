@@ -42,6 +42,6 @@ public class MessageController : ControllerBase
         };
         
         MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
-        return Ok(response);
+        return Ok(response.BotText);
     }
 }

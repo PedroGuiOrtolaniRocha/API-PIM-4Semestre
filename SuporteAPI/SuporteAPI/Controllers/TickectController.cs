@@ -43,9 +43,9 @@ public class TickectController: ControllerBase
     }
 
     [HttpPatch("{id}/finish", Name = "FinishTicket")]
-    public async Task<IActionResult> FinishTickect(int id)
+    public async Task<IActionResult> FinishTickect(int id, [FromBody] string solution)
     {
-        return Ok(await _ticketService.FinishTicket(id));
+        return Ok(await _ticketService.FinishTicket(id, solution));
     }
     
     [HttpPatch("{id}/changeTec", Name = "ChangeOwner")]

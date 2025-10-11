@@ -10,7 +10,7 @@ namespace SuporteAPI.Interface.Service
         Task<List<Ticket>> GetAllTicketsByUser(int userId);
         Task<List<Ticket>> GetAllTickets();
         Task<Ticket?> GetTicketById(int id);
-        Task<Ticket> FinishTicket(int id);
+        Task<Ticket> FinishTicket(int id, string resolution);
         Task<Ticket> ChangeTec(int ticketId, int newOwnerId);
         Task<bool> AddSpec(int ticketId, int specId);
         Task<bool> RemoveSpec(int ticketId, int specId);

@@ -59,7 +59,7 @@ public class TicketService : ITicketService
         return await _ticketRepository.GetTicketById(id);
     }
     
-    public async Task<Ticket> FinishTicket(int id)
+    public async Task<Ticket> FinishTicket(int id, string resolution)
     {
         Ticket? ticket = await _ticketRepository.GetTicketById(id);
         
@@ -74,6 +74,7 @@ public class TicketService : ITicketService
         }
         
         ticket.Status = TicketStatus.Fechado.ToString();
+        ticket.Resolution = resolution;
         ticket.UpdatedAt = DateTime.Now;
         
         var resp = await _ticketRepository.UpdateTicket(ticket);
