@@ -11,11 +11,14 @@ namespace SuporteAPI.Service;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly ITecRegisterRepository _tecRegisterRepository;
+    private readonly ISpecRepository _specRepository;
 
-    
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, ITecRegisterRepository tecRegisterRepository, ISpecRepository specRepository)
     {
         _userRepository = userRepository;
+        _tecRegisterRepository = tecRegisterRepository;
+        _specRepository = specRepository;
     }
 
     public async Task VerifyValidity(User user)
@@ -90,5 +93,19 @@ public class UserService : IUserService
         }
         
         return true;
+    }
+
+    public async Task<List<Spec>> GetSpecsByUserId(int userId)
+    {
+        var tecRegisters = await _tecRegisterRepository.GetByUserId(userId);
+        var specIds = tecRegisters.Select(tr => tr.SpecId).Distinct().ToList();
+        var specs = new List<Spec>();
+        foreach (var specId in specIds)
+        {
+            var spec = await _specRepository.GetSpecById(specId);
+            if (spec != null)
+                specs.Add(spec);
+        }
+        return specs;
     }
 }

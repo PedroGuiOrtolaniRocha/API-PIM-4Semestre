@@ -47,8 +47,6 @@ namespace SuporteAPI.Repositorys
         {
             return await _context.TecRegisters.Where(x => x.UserId == userId).ToListAsync();
         }
-        
-        
     }
 }
 

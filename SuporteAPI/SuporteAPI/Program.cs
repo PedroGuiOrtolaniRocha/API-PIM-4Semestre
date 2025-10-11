@@ -42,6 +42,7 @@ public class Program
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<ISpecService, SpecService>();
         builder.Services.AddScoped<ITicketService, TicketService>();
+        builder.Services.AddScoped<ITecRegisterService, TecRegisterService>();
         
         builder.Services.AddScoped<IChatGenerator, OpenAiChatGenerator>();
         

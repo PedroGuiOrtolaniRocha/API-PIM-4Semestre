@@ -73,4 +73,11 @@ public class UserController : ControllerBase
         }
         throw new SuporteApiException("Usuário não encontrado", 404);
     }
+
+    [HttpGet("{id}/specs", Name = "GetSpecsByUserId")]
+    public async Task<IActionResult> GetSpecsByUserId(int id)
+    {
+        var specs = await _userService.GetSpecsByUserId(id);
+        return Ok(specs);
+    }
 }

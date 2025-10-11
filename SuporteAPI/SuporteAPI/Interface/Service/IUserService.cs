@@ -16,4 +16,6 @@ public interface IUserService
     public Task<List<UserDTO>> GetUsers();
     
     public Task<bool> validateCredentials(string username, string password);
+
+    public Task<List<Spec>> GetSpecsByUserId(int userId);
 }
