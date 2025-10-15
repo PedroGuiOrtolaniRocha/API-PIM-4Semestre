@@ -70,5 +70,4 @@ public class TicketRepository :  ITicketRepository
                   (rel, spec) => spec)
             .ToListAsync();
     }
-    
 }

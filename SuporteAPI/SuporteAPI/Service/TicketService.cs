@@ -1,3 +1,4 @@
+using SuporteAPI.DTO;
 using SuporteAPI.Interface.Repository;
 using SuporteAPI.Interface.Service;
 using SuporteAPI.Models;
@@ -21,16 +22,23 @@ public class TicketService : ITicketService
         _registerRepository = registerRepository;
     }
     
-    public async Task<Ticket> CreateTicket(Ticket ticket)
+    public async Task<Ticket> CreateTicket(TicketCreateDto ticket, int userId)
     {
-        if (await _userRepository.GetUserById(ticket.UserId) == null)
+        if (await _userRepository.GetUserById(userId) == null)
         {
             throw new SuporteApiException("Usuário não encontrado", 404);
         }
         
-        ticket.Status = TicketStatus.Aberto.ToString();
-        ticket.CreatedAt = DateTime.Now;
-        var resp = await _ticketRepository.CreateTicket(ticket);
+        Ticket newTicket = new Ticket
+        {
+            Title = ticket.Title,
+            Description = ticket.Description,
+            UserId = userId,
+            Status = nameof(TicketStatus.Aberto),
+            CreatedAt = DateTime.Now
+        };
+        
+        var resp = await _ticketRepository.CreateTicket(newTicket);
         
         if (resp == null)
         {
@@ -73,7 +81,7 @@ public class TicketService : ITicketService
             throw new SuporteApiException("Ticket já está encerrado");
         }
         
-        ticket.Status = TicketStatus.Fechado.ToString();
+        ticket.Status = nameof(TicketStatus.Fechado);
         ticket.Resolution = resolution;
         ticket.UpdatedAt = DateTime.Now;
         
@@ -85,6 +93,25 @@ public class TicketService : ITicketService
         }
         
         return resp;
+    }
+    
+    public async Task<User?> GetMostAvaliableTec(int ticketId)
+    {
+        List<TicketSpecRelation> specs = await _ticketSpecRelationRepository.GetByTicketId(ticketId);
+        
+        
+        if (specs.Count == 0)
+        {
+            throw new SuporteApiException("Ticket não possui especialidades", 400);
+        }
+        
+        User? user = await _userRepository.GetUserById(ticketId);
+        if (user == null)
+        {
+            throw new SuporteApiException("Não foi possível encontrar um técnico disponível", 404);
+        }
+
+        return user;
     }
 
     public async Task<Ticket> ChangeTec(int ticketId, int newOwnerId)

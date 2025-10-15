@@ -53,5 +53,10 @@ namespace SuporteAPI.Service
         {
             return await _tecRegisterRepository.GetByUserId(userId);
         }
+        
+        public async Task<List<TecRegister>> GetBySpecListId(List<int> specs)
+        {
+            return await _tecRegisterRepository.GetBySpecListId(specs);
+        }
     }
 }

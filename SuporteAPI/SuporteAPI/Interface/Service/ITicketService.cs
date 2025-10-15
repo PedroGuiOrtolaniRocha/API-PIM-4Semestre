@@ -1,12 +1,13 @@
 using SuporteAPI.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SuporteAPI.DTO;
 
 namespace SuporteAPI.Interface.Service
 {
     public interface ITicketService
     {
-        Task<Ticket> CreateTicket(Ticket ticket);
+        Task<Ticket> CreateTicket(TicketCreateDto ticket, int userId);
         Task<List<Ticket>> GetAllTicketsByUser(int userId);
         Task<List<Ticket>> GetAllTickets();
         Task<Ticket?> GetTicketById(int id);

@@ -51,7 +51,6 @@ public class MessageService : IMessageService
 
     public async Task<Message?> SendMessage(Message message)
     {
-        
         try
         {
             await VerifyConditions(message);

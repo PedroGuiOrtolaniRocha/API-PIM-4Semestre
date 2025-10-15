@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using SuporteAPI.DTO;
@@ -30,18 +32,34 @@ public class MessageController : ControllerBase
     }
 
     [HttpPost(Name = "SendMessage")]
-    public async Task<IActionResult> SendMessage(Message recivied)
+    [Authorize]
+    public async Task<IActionResult> SendMessage(MessageDto recivied)
     {
-        Message updateMsg = await _messageService.SendMessage(recivied) ?? new Message
+        var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "UserId");
+        
+        foreach (var claim in HttpContext.User.Claims)
         {
-            UserId = recivied.UserId,
-            Time = recivied.Time,
+            Console.WriteLine(claim.Type + ": " + claim.Value);
+        }
+        Message message = new Message()
+        {
+            UserId = int.Parse(userIdClaim?.Value ?? throw new SuporteApiException("Usuário não autenticado", 401)),
+            Time = DateTime.Now,
+            BotText = "",
+            UserText = recivied.Text,
+            TicketId = recivied.TiketId
+        };
+            
+        Message updateMsg = await _messageService.SendMessage(message) ?? new Message
+        {
+            UserId = message.UserId,
+            Time = message.Time,
             BotText = "Algo deu errado, tente novamente mais tarde",
-            UserText = recivied.UserText,
-            TicketId = recivied.TicketId
+            UserText = message.UserText,
+            TicketId = message.TicketId
         };
         
-        MessageDTO response = new MessageDTO(updateMsg, await _messageService.GetAuthor(updateMsg));
-        return Ok(response.BotText);
+        MessageDto response = new MessageDto(updateMsg, await _messageService.GetAuthor(updateMsg));
+        return Ok(response.Text);
     }
 }

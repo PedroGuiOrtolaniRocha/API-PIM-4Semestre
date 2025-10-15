@@ -3,6 +3,7 @@ using SuporteAPI.Interface.Service;
 using SuporteAPI.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SuporteAPI.Controllers
 {
@@ -31,6 +32,7 @@ namespace SuporteAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> AddTecRegister([FromBody] TecRegister entity)
         {
             var result = await _tecRegisterService.AddTecRegister(entity);
@@ -38,6 +40,7 @@ namespace SuporteAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteTecRegister(int id)
         {
             var result = await _tecRegisterService.DeleteTecRegister(id);

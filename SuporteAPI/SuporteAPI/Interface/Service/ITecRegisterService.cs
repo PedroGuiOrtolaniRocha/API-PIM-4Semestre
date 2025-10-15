@@ -11,6 +11,8 @@ namespace SuporteAPI.Interface.Service
         Task<TecRegister?> AddTecRegister(TecRegister entity);
         Task<bool> DeleteTecRegister(int id);
         Task<List<TecRegister>> GetByUserId(int userId);
+        Task<List<TecRegister>> GetBySpecListId(List<int> specs);
+
     }
 }
 

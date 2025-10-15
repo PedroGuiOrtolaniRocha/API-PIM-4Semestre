@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SuporteAPI.DTO;
 using SuporteAPI.Interface;
 using SuporteAPI.Interface.Repository;
 using SuporteAPI.Interface.Service;
@@ -24,17 +26,20 @@ public class TickectController: ControllerBase
     }
 
     [HttpGet("{id}", Name = "GetTickect")]
+    [Authorize]
     public async  Task<IActionResult> GetTickect(int id)
     {
         return Ok(await _ticketService.GetTicketById(id));
     }
 
     [HttpPost(Name = "PostTicket")]
-    public async Task<IActionResult> PostTickect([FromBody] Ticket ticket)
+    [Authorize]
+    public async Task<IActionResult> PostTickect([FromBody] TicketCreateDto ticket)
     {
         try
         {
-            return Ok(await _ticketService.CreateTicket(ticket));
+            return Ok(await _ticketService.CreateTicket(ticket, int.Parse(HttpContext.User.Claims
+                .FirstOrDefault(c => c.Type == "UserId").Value)));
         }
         catch (Exception ex)
         {
@@ -48,19 +53,22 @@ public class TickectController: ControllerBase
         return Ok(await _ticketService.FinishTicket(id, solution));
     }
     
-    [HttpPatch("{id}/changeTec", Name = "ChangeOwner")]
+    [HttpPatch("{id}/changeTec", Name = "ChangeTec")]
+    [Authorize]
     public async Task<IActionResult> ChangeTec(int id, [FromBody] int newOwner)
     {
         return Ok(await _ticketService.ChangeTec(id, newOwner));
     }
 
     [HttpPatch("{id}/addSpec", Name = "AddSpecToTicket")]
+    [Authorize]
     public async Task<IActionResult> AddSpec(int id, [FromBody] int specId)
     {
         return Ok(await _ticketService.AddSpec(id, specId));
     }
 
     [HttpPatch("{id}/removeSpec", Name = "RemoveSpecFromTicket")]
+    [Authorize]
     public async Task<IActionResult> RemoveSpec(int id, [FromBody] int specId)
     {
         return Ok(await _ticketService.RemoveSpec(id, specId));

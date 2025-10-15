@@ -1,4 +1,7 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SuporteAPI.Interface.Repository;
 using SuporteAPI.Interface.Service;
 using SuporteAPI.Interface.Utils;
@@ -17,20 +20,68 @@ public class Program
         
         var builder = WebApplication.CreateBuilder(args);
         
+        string secretKey = builder.Configuration.GetValue<string>("JWT:SECRET_KEY");
+        string issuer = builder.Configuration.GetValue<string>("JWT:Issuer");
+        string audience = builder.Configuration.GetValue<string>("JWT:Audience");
+
+        
+        Environment.SetEnvironmentVariable("JWT_SECRET_KEY", secretKey);
+        Environment.SetEnvironmentVariable("JWT_ISSUER", issuer);
+        Environment.SetEnvironmentVariable("JWT_AUDIENCE", audience);
         Environment.SetEnvironmentVariable("AI_URI",builder.Configuration.GetValue<string>( "AI_URI"));
         Environment.SetEnvironmentVariable("AI_API_KEY", builder.Configuration.GetValue<string>( "AI_API_KEY"));
         
-        Console.WriteLine(builder.Configuration.GetValue<string>( "Teste"));
-
         // Add services to the container.
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\""
+                }
+            );
+            options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
+        });
 
-        builder.Services.AddDbContext<DbEntity>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
         
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateLifetime = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidAudience = audience,
+                    ValidIssuer = issuer,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? throw new Exception("JWT secret key not configured")))
+                };
+            });
+        
+       
+        builder.Services.AddDbContext<DbEntity>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IMessageRepository, MessageRepository>();
         builder.Services.AddScoped<ITicketRepository, TicketRepository>();
@@ -50,9 +101,9 @@ public class Program
 
         app.UseMiddleware<Middleware.ExceptionMiddleware>();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
+            
         }
         app.UseHttpsRedirection();
         app.UseSwagger();
@@ -62,8 +113,9 @@ public class Program
             c.RoutePrefix = "";
         });
 
+        app.UseAuthentication();
         app.UseAuthorization();
-
+        
         app.MapControllers();
 
         app.Run();
