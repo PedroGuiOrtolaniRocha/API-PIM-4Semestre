@@ -32,7 +32,7 @@ namespace SuporteAPI.Middleware
             {
                 context.Response.ContentType = "application/json";
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                var result = JsonSerializer.Serialize(new { message = "Erro interno do servidor"});
+                var result = JsonSerializer.Serialize(new { message = ex.Message});
                 await context.Response.WriteAsync(result);
             }
         }

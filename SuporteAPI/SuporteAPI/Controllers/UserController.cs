@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Models;
 using SuporteAPI.DTO;
@@ -38,6 +39,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPatch(Name = "UpdateUser")]
+    [Authorize]
     public async Task<IActionResult> Patch(User user)
     {
         try
@@ -72,5 +74,20 @@ public class UserController : ControllerBase
             return Ok(user);
         }
         throw new SuporteApiException("Usuário não encontrado", 404);
+    }
+
+    [HttpGet("{id}/specs", Name = "GetSpecsByUserId")]
+    public async Task<IActionResult> GetSpecsByUserId(int id)
+    {
+        var specs = await _userService.GetSpecsByUserId(id);
+        return Ok(specs);
+    }
+
+    [HttpPost("validateCredentials", Name = "ValidateCredentials")]
+    public async Task<IActionResult> ValidateCredentials([FromBody] CredentialDto credentials)
+    {
+        User user = await _userService.validateCredentials(credentials.Email, credentials.Password);
+        string token = Auth.GenerateToken(user);
+        return Ok(new { user = new UserDto(user), token });
     }
 }

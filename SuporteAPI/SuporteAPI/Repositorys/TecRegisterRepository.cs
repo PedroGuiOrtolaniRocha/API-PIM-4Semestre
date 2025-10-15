@@ -47,8 +47,11 @@ namespace SuporteAPI.Repositorys
         {
             return await _context.TecRegisters.Where(x => x.UserId == userId).ToListAsync();
         }
-        
-        
+
+        public async Task<List<TecRegister>> GetBySpecListId(List<int> specs)
+        {
+            return await _context.TecRegisters.Where(x => specs.Contains(x.SpecId)).ToListAsync();
+        }
     }
 }
 

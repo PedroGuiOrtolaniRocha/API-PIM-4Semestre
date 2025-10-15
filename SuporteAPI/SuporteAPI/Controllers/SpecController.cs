@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SuporteAPI.Interface.Service;
 using SuporteAPI.Models;
@@ -35,6 +36,7 @@ public class SpecController : ControllerBase
     }
 
     [HttpPost(Name = "CreateSpec")]
+    [Authorize]
     public async Task<IActionResult> Post([FromBody] Spec spec)
     {
         spec.Id = 0;
@@ -50,6 +52,7 @@ public class SpecController : ControllerBase
     }
 
     [HttpPatch(Name = "UpdateSpec")]
+    [Authorize]
     public async Task<IActionResult> Patch([FromBody] Spec spec)
     {
         try

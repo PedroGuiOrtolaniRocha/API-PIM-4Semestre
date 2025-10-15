@@ -11,11 +11,14 @@ namespace SuporteAPI.Service;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly ITecRegisterRepository _tecRegisterRepository;
+    private readonly ISpecRepository _specRepository;
 
-    
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, ITecRegisterRepository tecRegisterRepository, ISpecRepository specRepository)
     {
         _userRepository = userRepository;
+        _tecRegisterRepository = tecRegisterRepository;
+        _specRepository = specRepository;
     }
 
     public async Task VerifyValidity(User user)
@@ -31,14 +34,14 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<UserDTO> InsertUser(User user)
+    public async Task<UserDto> InsertUser(User user)
     {
         await VerifyValidity(user);
         User? newUser = await _userRepository.InsertUser(user);
-        return new UserDTO(newUser);
+        return new UserDto(newUser);
     }
 
-    public async Task<UserDTO?> UpdateUser(User user)
+    public async Task<UserDto?> UpdateUser(User user)
     {
         User? oldUser = await _userRepository.GetUserById(user.Id);
         VerifyValidity(user);
@@ -60,27 +63,27 @@ public class UserService : IUserService
             return null;
         }
             
-        return new UserDTO(user);
+        return new UserDto(user);
 
     }
 
-    public async Task<UserDTO?> GetUserById(int id)
+    public async Task<UserDto?> GetUserById(int id)
     {
         User? user = await _userRepository.GetUserById(id);
         if (user == null)
         {
             return null;
         }
-        return new UserDTO(user);
+        return new UserDto(user);
     }
 
-    public async Task<List<UserDTO>> GetUsers()
+    public async Task<List<UserDto>> GetUsers()
     {
-        List<UserDTO> users = UserDTO.ToDTO(await _userRepository.GetUsers());
+        List<UserDto> users = UserDto.ToDto(await _userRepository.GetUsers());
         return users;
     }
 
-    public async Task<bool> validateCredentials(string email, string password)
+    public async Task<User> validateCredentials(string email, string password)
     {
         User? user = await _userRepository.GetUserByEmail(email);
         
@@ -89,6 +92,20 @@ public class UserService : IUserService
             throw new SuporteApiException("Email ou senha incorreta");
         }
         
-        return true;
+        return user;
+    }
+
+    public async Task<List<Spec>> GetSpecsByUserId(int userId)
+    {
+        var tecRegisters = await _tecRegisterRepository.GetByUserId(userId);
+        var specIds = tecRegisters.Select(tr => tr.SpecId).Distinct().ToList();
+        var specs = new List<Spec>();
+        foreach (var specId in specIds)
+        {
+            var spec = await _specRepository.GetSpecById(specId);
+            if (spec != null)
+                specs.Add(spec);
+        }
+        return specs;
     }
 }

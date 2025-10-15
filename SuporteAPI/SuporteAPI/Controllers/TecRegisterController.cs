@@ -1,16 +1,58 @@
 using Microsoft.AspNetCore.Mvc;
+using SuporteAPI.Interface.Service;
 using SuporteAPI.Models;
-using SuporteAPI.Utils;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
-namespace SuporteAPI.Controllers;
-
-[ApiController]
-[Route("[controller]")]
-public class TecRegisterController : ControllerBase
+namespace SuporteAPI.Controllers
 {
-    [HttpPost]
-    public IActionResult Post([FromBody] TecRegister tec)
+    [ApiController]
+    [Route("[controller]")]
+    public class TecRegisterController : ControllerBase
     {
-        return Ok(tec);
+        private readonly ITecRegisterService _tecRegisterService;
+        public TecRegisterController(ITecRegisterService tecRegisterService)
+        {
+            _tecRegisterService = tecRegisterService;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _tecRegisterService.GetById(id);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _tecRegisterService.GetAll();
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> AddTecRegister([FromBody] TecRegister entity)
+        {
+            var result = await _tecRegisterService.AddTecRegister(entity);
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteTecRegister(int id)
+        {
+            var result = await _tecRegisterService.DeleteTecRegister(id);
+            return Ok(result);
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUserId(int userId)
+        {
+            var result = await _tecRegisterService.GetByUserId(userId);
+            return Ok(result);
+        }
     }
 }
+
