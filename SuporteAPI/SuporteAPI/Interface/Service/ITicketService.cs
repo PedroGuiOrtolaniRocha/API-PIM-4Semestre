@@ -17,6 +17,6 @@ namespace SuporteAPI.Interface.Service
         Task<bool> RemoveSpec(int ticketId, int specId);
         Task ValidateTecForTicket(int tecId, int ticketId);
         Task<List<Spec>> GetSpecsByTicketId(int ticketId);
-        
+        Task<bool> RouteTicket(int ticketId);
     }
 }

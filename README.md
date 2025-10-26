@@ -9,6 +9,28 @@ API para gerenciamento de tickets, usuários, técnicos, mensagens e integraçã
 - SQL Server
 - Git
 
+## Instalação e Execução
+
+1. **Clone o repositório**
+   ```sh
+   git clone https://github.com/seu-usuario/API-PIM-4Semestre.git
+   cd API-PIM-4Semestre/SuporteAPI/SuporteAPI
+   ```
+2. **Restaure os pacotes**
+   ```sh
+   dotnet restore
+   ```
+3. **Configure o ambiente**
+   - Edite `appsettings.Development.json` com sua string de conexão e chaves de API.
+4. **Compile o projeto**
+   ```sh
+   dotnet build
+   ```
+5. **Execute a API**
+   ```sh
+   dotnet run
+   ```
+   Acesse em `http://localhost:5262`.
 
 ## Testes de Endpoints
 
@@ -26,8 +48,76 @@ API para gerenciamento de tickets, usuários, técnicos, mensagens e integraçã
 
 ## Diagramas
 
-- Utilize a ferramenta https://www.plantuml.com/plantuml/uml/ para interpretar os arquivos .platuml
+### Diagrama de Classes (PlantUML)
+
+```plantuml
+@startuml
+class User {
+  +Id: int
+  +Username: string
+  +Email: string
+  +PasswordHash: string
+  +Role: string
+}
+class Spec {
+  +Id: int
+  +Name: string
+  +Description: string
+}
+class TecRegister {
+  +Id: int
+  +SpecId: int
+  +UserId: int
+}
+class Ticket {
+  +Id: int
+  +UserId: int
+  +TecRegisterId: int
+  +Description: string
+  +Title: string
+  +Status: string
+  +CreatedAt: DateTime
+  +UpdatedAt: DateTime
+}
+class Message {
+  +Id: int
+  +Time: DateTime
+  +UserText: string
+  +BotText: string
+  +TicketId: int
+  +UserId: int
+}
+class TicketSpecRelation {
+  +Id: int
+  +SpecId: int
+  +TicketId: int
+}
+TecRegister "1..1" --> Spec : possui 
+TecRegister <-- "1..*" User : possui 
+Ticket  <-- "1..*" User :  possui 
+Ticket <-- "1..1" TecRegister : técnico 
+Message --> "1..*" Ticket : pertence 
+Message <-- "1..*" User : autor 
+TicketSpecRelation --> "1..*"Ticket : pertence 
+TicketSpecRelation --> "1..*" Spec : refere-se 
+@enduml
+```
+
+### Diagrama de Banco de Dados
+Veja o arquivo `diagrama_db.plantuml` para o modelo relacional.
+
+## Integração com Agente de IA
+
+O projeto inclui um utilitário de integração com um agente de IA (implementado em `Utils/OpenAiChatGenerator.cs`). A conexão com o agente é realizada via SDKs (OpenAI/Azure) configurados pelas chaves e endpoints no `appsettings.Development.json`. O fluxo típico: o usuário envia uma mensagem ao endpoint `POST /Message`, o `MessageService` pode encaminhar o texto para o gerador de chat, receber a resposta (BotText) e persistir tanto a entrada quanto a resposta no histórico de mensagens. Recomenda-se proteger as chaves de API usando variáveis de ambiente ou serviços de segredo em produção.
+
+## Uso de Interfaces
+
+As interfaces da aplicação ficam centralizadas na pasta `Interface/` e definem contratos para repositórios e serviços (por exemplo `IUserRepository`, `IMessageService`). Esse padrão facilita testes unitários (substituição por mocks), separa contratos de implementações concretas e melhora a manutenção do código. Ao desenvolver novos repositórios ou serviços, crie primeiro a interface, registre-a no contêiner de DI em `Program.cs` e depois implemente a classe concreta em `Repositorys/` ou `Service/`.
 
 ## Documentação
 
 - Acesse a documentação Swagger em `http://localhost:5262` após iniciar o projeto.
+
+---
+
+Em caso de dúvidas, consulte os arquivos de configuração, diagramas ou abra uma issue.

@@ -199,4 +199,36 @@ public class TicketService : ITicketService
     {
         return await _ticketRepository.GetSpecsByTicketId(ticketId);
     }
+    
+    public async Task<bool> RouteTicket(int ticketId)
+    {
+        Ticket? ticket = await _ticketRepository.GetTicketById(ticketId);
+        
+        if (ticket == null)
+        {
+            throw new SuporteApiException("Ticket não encontrado", 404);
+        }
+
+        if (ticket.Status == TicketStatus.Fechado.ToString())
+        {
+            throw new SuporteApiException("Ticket já está encerrado");
+        }
+        
+        User? tec = await GetMostAvaliableTec(ticketId);
+        
+        if (tec == null)
+        {
+            throw new SuporteApiException("Não foi possível encontrar um técnico disponível", 404);
+        }
+
+        ticket.TecUserId = tec.Id;
+        var resp = await _ticketRepository.UpdateTicket(ticket);
+        
+        if (resp == null)
+        {
+            throw new SuporteApiException("Erro ao rotear ticket");
+        }
+        
+        return true;
+    }
 }

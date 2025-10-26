@@ -1,0 +1,25 @@
+@startuml
+actor System
+participant "API\nApp" as App
+participant "TicketService" as TicketService
+participant "TecRegisterService" as TecService
+participant "TicketRepository" as Repo
+participant "DB" as DB
+
+System -> App: POST /tickets/{id}/assign?specId=...
+App -> TicketService: AssignTicketToTechnician(ticketId, specId)
+TicketService -> Repo: GetOpenTicketsCountByTecRegister(specId)
+Repo -> DB: SELECT COUNT(...) WHERE TecRegisterId=...
+DB --> Repo: count
+TicketService -> TecService: FindAvailableTec(specId)
+TecService -> Repo: GetTecRegisterBySpec(specId)
+Repo -> DB: SELECT TecRegister WHERE SpecId=...
+DB --> Repo: tecregister
+TicketService -> Repo: UpdateTicket(ticketId, TecRegisterId, Status)
+Repo -> DB: UPDATE Ticket SET TecRegisterId=?, Status=?
+DB --> Repo: OK
+TicketService --> App: 200 OK (assigned)
+App --> System: 200 OK
+
+@enduml
+

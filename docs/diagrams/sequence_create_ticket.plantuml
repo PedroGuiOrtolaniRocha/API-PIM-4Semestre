@@ -1,0 +1,18 @@
+@startuml
+actor User
+participant "API\nApp" as App
+participant "TicketService" as TicketService
+participant "TicketRepository" as Repo
+participant "DB" as DB
+
+User -> App: POST /tickets (create ticket with spec)
+App -> TicketService: CreateTicket(dto, userId)
+TicketService -> Repo: Add(ticket, specs)
+Repo -> DB: INSERT Ticket, TicketSpecRelation
+DB --> Repo: OK (ids)
+Repo --> TicketService: ticketWithId
+TicketService --> App: CreatedTicketDto
+App --> User: 201 Created (ticket)
+
+@enduml
+

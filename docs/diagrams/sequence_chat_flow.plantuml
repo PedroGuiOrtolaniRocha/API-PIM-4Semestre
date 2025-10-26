@@ -1,0 +1,22 @@
+@startuml
+actor User
+participant "API\nApp" as App
+participant "MessageService" as MsgService
+participant "ChatGenerator" as ChatGen
+participant "TicketService" as TicketService
+participant "DB" as DB
+
+User -> App: POST /messages (ticketId, userText)
+App -> MsgService: SendMessage(dto, userId)
+MsgService -> TicketService: GetTicket(ticketId)
+TicketService -> DB: SELECT Ticket WHERE Id=?
+DB --> TicketService: ticket
+MsgService -> ChatGen: GenerateReply(context)
+ChatGen --> MsgService: botText
+MsgService -> DB: INSERT Message (UserText, BotText)
+DB --> MsgService: OK
+MsgService --> App: MessageDto
+App --> User: 200 OK (message)
+
+@enduml
+
