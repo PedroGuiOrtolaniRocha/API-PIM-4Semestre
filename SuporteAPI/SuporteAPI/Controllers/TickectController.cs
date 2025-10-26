@@ -73,7 +73,14 @@ public class TickectController: ControllerBase
     {
         return Ok(await _ticketService.RemoveSpec(id, specId));
     }
-
+    
+    [HttpPatch("{id}/routeTicket", Name = "RouteTicket")]
+    [Authorize]
+    public async Task<IActionResult> RouteTicket(int id)
+    {
+        return Ok(await _ticketService.RouteTicket(id));
+    }
+    
     [HttpGet("{id}/specs", Name = "GetSpecsByTicketId")]
     public async Task<IActionResult> GetSpecsByTicketId(int id)
     {

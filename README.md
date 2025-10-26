@@ -12,7 +12,7 @@ API para gerenciamento de tickets, usuários, técnicos, mensagens e integraçã
 
 ## Testes de Endpoints
 
-- Utilize o arquivo `SuporteAPI.http`, Postman ou acesse [https://localhost:7096/index.html](https://localhost:7096/index.html) para testar os endpoints.
+- Utilize o Postman ou acesse [https://localhost:7096/index.html](https://localhost:7096/index.html) para testar os endpoints.
 
 ## Estrutura do Projeto
 

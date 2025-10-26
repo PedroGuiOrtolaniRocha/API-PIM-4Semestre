@@ -2,59 +2,8 @@
 top to bottom direction
 skinparam linetype ortho
 
-class User {
-   +Id: int
-   +Username: string
-   +Email: string
-   +PasswordHash: string
-   +Role: string
-}
-
-class Spec {
-   +Id: int
-   +Name: string
-   +Description: string
-}
-
-class TecRegister {
-   +Id: int
-   +SpecId: int
-   +UserId: int
-}
-
-class Ticket {
-   +Id: int
-   +UserId: int
-   +TecRegisterId: int
-   +Description: string
-   +Title: string
-   +Status: string
-   +CreatedAt: DateTime
-   +UpdatedAt: DateTime
-}
-
-class Message {
-   +Id: int
-   +Time: DateTime
-   +UserText: string
-   +BotText: string
-   +TicketId: int
-   +UserId: int
-}
-
-class TicketSpecRelation {
-   +Id: int
-   +SpecId: int
-   +TicketId: int
-}
-
-TecRegister "1..1" --> Spec : possui 
-TecRegister <-- "1..*" User : possui 
-Ticket  <-- "1..*" User :  possui 
-Ticket <-- "1..1" TecRegister : técnico 
-Message --> "1..*" Ticket : pertence 
-Message <-- "1..*" User : autor 
-TicketSpecRelation --> "1..*"Ticket : pertence 
-TicketSpecRelation --> "1..*" Spec : refere-se 
+' Diagrama movido para docs/diagrams/diagrama_db.plantuml
+' Use este arquivo apenas como apontamento ao diagrama centralizado.
+!include docs/diagrams/diagrama_db.plantuml
 
 @enduml

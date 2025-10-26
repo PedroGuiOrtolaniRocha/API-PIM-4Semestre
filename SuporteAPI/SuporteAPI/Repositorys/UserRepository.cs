@@ -65,4 +65,26 @@ public class UserRepository : IUserRepository
     {
         return !await _context.Users.AnyAsync(u => u.Email == email && u.Id != id);
     }
+
+    public async Task<User?> GetMostAvaliableUserBySpecs(List<int> specIds)
+    {
+        List<int> userIds =  _context.TecRegisters
+            .Where(tr => specIds.Contains(tr.SpecId))
+            .Select(tr => tr.UserId)
+            .Distinct()
+            .ToList();
+        
+        var usersWithTicketCounts = await _context.Users
+            .Where(u => userIds.Contains(u.Id))
+            .Select(u => new
+            {
+                User = u,
+                TicketCount = _context.Tickets.Count(t => t.TecUserId == u.Id && t.Status != "Fechado")
+            })
+            .OrderBy(ut => ut.TicketCount)
+            .ToListAsync();     
+        
+        var mostAvaliableUser = usersWithTicketCounts.FirstOrDefault()?.User;
+        return mostAvaliableUser;
+    }
 }
