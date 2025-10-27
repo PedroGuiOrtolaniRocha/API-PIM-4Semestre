@@ -51,10 +51,16 @@ public class UserService : IUserService
             throw new SuporteApiException("Email já cadastrado");
         }
         
+        if (user.PasswordHash == null || user.PasswordHash == "")
+        {
+            user.PasswordHash = oldUser.PasswordHash;
+        }
+        
         if (user.PasswordHash != oldUser.PasswordHash)
         {
             user.PasswordHash = PasswordUtils.ToHash(user.PasswordHash);
         }
+        
         
         var resp = await _userRepository.UpdateUser(user);
         

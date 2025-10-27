@@ -30,6 +30,20 @@ public class MessageController : ControllerBase
         _chatGenerator = chatGenerator;
         _logger = logger;
     }
+    
+    [HttpGet("{ticketId}", Name = "GetMessagesByTicketId")]
+    [Authorize]
+    public async Task<IActionResult> GetMessagesByTicketId(int ticketId)
+    {
+        var messages = await _messageService.GetMessagesByTicketId(ticketId);
+        List<MessageDto> response = new List<MessageDto>();
+        foreach (var msg in messages)
+        {
+            User author = await _messageService.GetAuthor(msg);
+            response.Add(new MessageDto(msg, author));
+        }
+        return Ok(response);
+    }
 
     [HttpPost(Name = "SendMessage")]
     [Authorize]
