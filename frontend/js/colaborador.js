@@ -210,7 +210,7 @@ function renderizarListaTickets() {
 }
 
 // Selecionar ticket
-function selecionarTicket(ticket) {
+async function selecionarTicket(ticket) {
     console.log('Ticket selecionado:', ticket.title);
     ticketSelecionado = ticket;
     
@@ -229,8 +229,8 @@ function selecionarTicket(ticket) {
         cabecalhoChat.textContent = `Chat - ${ticket.title}`;
     }
     
-    // Atualizar detalhes do ticket
-    atualizarDetalhesTicket(ticket);
+    // Atualizar detalhes do ticket (agora assíncrono)
+    await atualizarDetalhesTicket(ticket);
 }
 
 // Renderizar mensagens do chat
@@ -267,7 +267,7 @@ function renderizarMensagensChat() {
 }
 
 // Atualizar detalhes do ticket
-function atualizarDetalhesTicket(ticket) {
+async function atualizarDetalhesTicket(ticket) {
     const elementos = {
         'ticket-status': ticket.status,
         'ticket-title': ticket.title,
@@ -282,6 +282,85 @@ function atualizarDetalhesTicket(ticket) {
             elemento.textContent = valor;
         }
     });
+    
+    // Carregar informações do técnico responsável
+    await carregarInformacoesTecnico(ticket);
+}
+
+// Carregar informações do técnico responsável
+async function carregarInformacoesTecnico(ticket) {
+    const elemTechName = document.getElementById('tech-name');
+    const elemTechSpec = document.getElementById('tech-spec');
+    
+    if (!elemTechName || !elemTechSpec) return;
+    
+    // Reset para valores padrão
+    elemTechName.textContent = 'Não atribuído';
+    elemTechSpec.textContent = '-';
+    
+    // Se não há técnico atribuído, não fazer requisição
+    if (!ticket.tecUserId) {
+        console.log('💡 Ticket sem técnico atribuído');
+        return;
+    }
+    
+    try {
+        console.log('👨‍💻 Buscando informações do técnico:', ticket.tecUserId);
+        
+        // GET /User/{id} - Buscar dados do técnico
+        const tecnico = await suporteAPI.chamarAPI(`/User/${ticket.tecUserId}`, 'GET');
+        
+        if (tecnico) {
+            console.log('✅ Técnico encontrado:', tecnico.email);
+            elemTechName.textContent = tecnico.email || 'Nome não disponível';
+            
+            // Buscar especialidades do técnico se disponível
+            await carregarEspecialidadesTecnico(ticket.tecUserId, elemTechSpec);
+        } else {
+            console.log('⚠️ Técnico não encontrado');
+            elemTechName.textContent = 'Técnico não encontrado';
+        }
+    } catch (error) {
+        console.error('❌ Erro ao carregar informações do técnico:', error);
+        elemTechName.textContent = 'Erro ao carregar';
+        elemTechSpec.textContent = 'Erro ao carregar';
+    }
+}
+
+// Carregar especialidades do técnico
+async function carregarEspecialidadesTecnico(tecnicoId, elemTechSpec) {
+    try {
+        console.log('🔧 Buscando especialidades do técnico:', tecnicoId);
+        
+        // GET /TecRegister - Buscar registros do técnico
+        const registros = await suporteAPI.chamarAPI('/TecRegister', 'GET');
+        
+        if (registros && Array.isArray(registros)) {
+            const registroTecnico = registros.find(reg => reg.userId === tecnicoId);
+            
+            if (registroTecnico && registroTecnico.specId) {
+                // GET /Spec/{id} - Buscar especialidade
+                const especialidade = await suporteAPI.chamarAPI(`/Spec/${registroTecnico.specId}`, 'GET');
+                
+                if (especialidade && especialidade.name) {
+                    console.log('✅ Especialidade encontrada:', especialidade.name);
+                    elemTechSpec.textContent = especialidade.name;
+                } else {
+                    console.log('⚠️ Especialidade não encontrada');
+                    elemTechSpec.textContent = 'Especialidade não encontrada';
+                }
+            } else {
+                console.log('⚠️ Registro de técnico não encontrado');
+                elemTechSpec.textContent = 'Sem especialidade registrada';
+            }
+        } else {
+            console.log('⚠️ Nenhum registro encontrado');
+            elemTechSpec.textContent = 'Sem registros disponíveis';
+        }
+    } catch (error) {
+        console.error('❌ Erro ao carregar especialidades:', error);
+        elemTechSpec.textContent = 'Erro ao carregar especialidade';
+    }
 }
 
 // Configurar entrada de chat
@@ -332,14 +411,38 @@ async function enviarMensagem(ticketId, textoUsuario, autorId) {
 }
 
 // Pedir escalação
-function pedirEscalacao() {
+async function pedirEscalacao() {
     if (!ticketSelecionado) {
         suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
         return;
     }
     
-    console.log('Solicitando escalação para ticket:', ticketSelecionado.id);
-    suporteAPI.mostrarMensagem('Solicitação de escalação enviada', 'success');
+    try {
+        console.log('🔄 Solicitando escalação para ticket:', ticketSelecionado.id);
+        
+        // PATCH /Ticket/{id}/routeTicket - Rotear ticket para técnico disponível
+        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/routeTicket`, 'PATCH');
+        
+        console.log('✅ Ticket escalado com sucesso');
+        
+        // Recarregar tickets para refletir mudanças
+        await carregarTickets();
+        
+        // Atualizar detalhes do ticket selecionado
+        if (ticketSelecionado) {
+            const ticketsAtualizados = await suporteAPI.chamarAPI('/Ticket', 'GET');
+            const ticketAtualizado = ticketsAtualizados.find(t => t.id === ticketSelecionado.id);
+            if (ticketAtualizado) {
+                await atualizarDetalhesTicket(ticketAtualizado);
+                ticketSelecionado = ticketAtualizado;
+            }
+        }
+        
+        suporteAPI.mostrarMensagem('Ticket escalado para técnico disponível', 'success');
+    } catch (error) {
+        console.error('❌ Erro ao escalar ticket:', error);
+        suporteAPI.mostrarMensagem('Erro ao escalar ticket', 'error');
+    }
 }
 
 // Encerrar ticket
@@ -374,7 +477,7 @@ async function criarTicket(dadosTicket) {
             title: dadosTicket.title,
             description: dadosTicket.description,
             userId: dadosTicket.userId,
-            status: dadosTicket.status || 'Aberto'
+            status: dadosTicket.status || 'Aberto',
         };
         
         await suporteAPI.chamarAPI('/Ticket', 'POST', ticketDto);
