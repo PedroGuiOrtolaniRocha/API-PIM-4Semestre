@@ -20,9 +20,9 @@ public class Program
         
         var builder = WebApplication.CreateBuilder(args);
         
-        string secretKey = builder.Configuration.GetValue<string>("JWT:SECRET_KEY");
-        string issuer = builder.Configuration.GetValue<string>("JWT:Issuer");
-        string audience = builder.Configuration.GetValue<string>("JWT:Audience");
+        string? secretKey = builder.Configuration.GetValue<string?>("JWT:SECRET_KEY");
+        string? issuer = builder.Configuration.GetValue<string?>("JWT:Issuer");
+        string? audience = builder.Configuration.GetValue<string?>("JWT:Audience");
 
         
         Environment.SetEnvironmentVariable("JWT_SECRET_KEY", secretKey);
@@ -34,6 +34,16 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddControllers();
+        // Add CORS policy to allow requests from any origin (used for local/dev and containers)
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
@@ -100,6 +110,9 @@ public class Program
         var app = builder.Build();
 
         app.UseMiddleware<Middleware.ExceptionMiddleware>();
+
+        // Enable CORS (must be before authentication/authorization and before MapControllers)
+        app.UseCors("AllowAll");
 
         if (app.Environment.IsDevelopment())
         {

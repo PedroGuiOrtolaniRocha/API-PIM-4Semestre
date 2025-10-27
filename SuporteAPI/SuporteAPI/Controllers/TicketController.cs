@@ -11,21 +11,21 @@ namespace SuporteAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class TickectController: ControllerBase
+public class TicketController: ControllerBase
 {
     private readonly ITicketService _ticketService;
-    public TickectController(ITicketService ticketService)
+    public TicketController(ITicketService ticketService)
     {
         _ticketService = ticketService;
     }
     
-    [HttpGet(Name = "GetTickects")]
+    [HttpGet(Name = "GetTickets")]
     public async Task<IActionResult> GetAllTickects()
     {
         return Ok(await _ticketService.GetAllTickets());
     }
 
-    [HttpGet("{id}", Name = "GetTickect")]
+    [HttpGet("{id}", Name = "GetTicket")]
     [Authorize]
     public async  Task<IActionResult> GetTickect(int id)
     {

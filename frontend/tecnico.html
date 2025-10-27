@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suporte API - Técnico</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Sistema de Suporte - Técnico</h1>
+        <div class="user-info">
+            <span>tecnico@example.com</span>
+            <button class="logout-btn" onclick="suporteAPI.logout()">Sair</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Região Esquerda - Lista de Tickets Atribuídos -->
+        <div class="left-panel">
+            <div class="panel-header">
+                Tickets Atribuídos
+            </div>
+            <div id="ticket-list">
+                <!-- Tickets serão carregados dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Região Central - Chat -->
+        <div class="center-panel">
+            <div class="chat-header" id="chat-header">
+                Selecione um ticket para visualizar o histórico
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <!-- Mensagens serão carregadas dinamicamente -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="Digite sua resposta...">
+                <button class="send-btn" id="send-btn">Enviar</button>
+            </div>
+        </div>
+
+        <!-- Região Direita - Detalhes e Resolução -->
+        <div class="right-panel">
+            <div class="detail-section">
+                <h3>Informações do Ticket</h3>
+                <div class="detail-item">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value" id="ticket-status">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Título:</div>
+                    <div class="detail-value" id="ticket-title">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Descrição:</div>
+                    <div class="detail-value" id="ticket-description">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Criado em:</div>
+                    <div class="detail-value" id="ticket-created">-</div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Informações do Colaborador</h3>
+                <div class="detail-item">
+                    <div class="detail-label">Nome:</div>
+                    <div class="detail-value" id="user-name">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Email:</div>
+                    <div class="detail-value" id="user-email">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Tickets Anteriores:</div>
+                    <div class="detail-value" id="user-ticket-count">-</div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Resolução</h3>
+                <div class="form-group">
+                    <label class="form-label" for="resolution-text">Texto da Resolução:</label>
+                    <textarea id="resolution-text" class="form-textarea" placeholder="Descreva a solução aplicada..."></textarea>
+                </div>
+                <button class="action-btn btn-success" onclick="resolveTicket()">
+                    Encerrar Chamado com Resolução
+                </button>
+                <button class="action-btn btn-warning" onclick="updateTicketStatus()">
+                    Atualizar Status para "Em Andamento"
+                </button>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 1rem; font-style: italic;">
+                    ℹ️ Técnicos podem apenas visualizar mensagens, não podem enviar mensagens de chat
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmar Resolução -->
+    <div id="resolve-ticket-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmar Resolução do Ticket</h2>
+                <span class="close" onclick="suporteAPI.closeModal('resolve-ticket-modal')">&times;</span>
+            </div>
+            <div>
+                <p>Tem certeza que deseja encerrar este ticket com a resolução fornecida?</p>
+                <p><strong>Ticket:</strong> <span id="modal-ticket-title"></span></p>
+                <p><strong>Resolução:</strong></p>
+                <div id="modal-resolution-preview" style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin: 1rem 0;"></div>
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button class="action-btn btn-primary" onclick="suporteAPI.closeModal('resolve-ticket-modal')" style="margin-right: 0.5rem;">Cancelar</button>
+                    <button class="action-btn btn-success" onclick="confirmResolveTicket()">Confirmar Resolução</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/comum.js"></script>
+    <script src="js/tecnico.js"></script>
+    <script>
+        // Funções específicas expostas globalmente
+        function updateTicketStatus() {
+            atualizarStatusTicket();
+        }
+
+        // Função removida: Técnicos não podem solicitar mais informações via chat
+
+        function resolveTicket() {
+            resolverTicket();
+        }
+
+        function confirmResolveTicket() {
+            confirmarResolucaoTicket();
+        }
+    </script>
+</body>
+</html>

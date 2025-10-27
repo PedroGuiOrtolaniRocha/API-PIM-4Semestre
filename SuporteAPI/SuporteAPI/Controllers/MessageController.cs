@@ -17,18 +17,26 @@ namespace SuporteAPI.Controllers;
 [Route("[controller]")]
 public class MessageController : ControllerBase
 {
-    private readonly ILogger<MessageController> _logger;
-    private readonly IChatGenerator _chatGenerator;
-    private readonly IMessageRepository _messageRepository;
     private readonly IMessageService _messageService;
 
     public MessageController(ILogger<MessageController> logger, IChatGenerator chatGenerator, 
         IMessageRepository messageRepository, IMessageService messageService)
     {
         _messageService = messageService;
-        _messageRepository  = messageRepository;
-        _chatGenerator = chatGenerator;
-        _logger = logger;
+    }
+    
+    [HttpGet("{ticketId}", Name = "GetMessagesByTicketId")]
+    [Authorize]
+    public async Task<IActionResult> GetMessagesByTicketId(int ticketId)
+    {
+        var messages = await _messageService.GetMessagesByTicketId(ticketId);
+        List<MessageDto> response = new List<MessageDto>();
+        foreach (var msg in messages)
+        {
+            User author = await _messageService.GetAuthor(msg);
+            response.Add(new MessageDto(msg, author));
+        }
+        return Ok(response);
     }
 
     [HttpPost(Name = "SendMessage")]

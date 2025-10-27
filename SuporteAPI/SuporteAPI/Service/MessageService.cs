@@ -72,4 +72,9 @@ public class MessageService : IMessageService
         
     }
     
+    public async Task<List<Message>> GetMessagesByTicketId(int ticketId)
+    {
+        return await _messageRepository.GetMessagesByTicketId(ticketId);
+    }
+    
 }

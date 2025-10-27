@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suporte API - Administrador</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Sistema de Suporte - Administrador</h1>
+        <div class="user-info">
+            <span>admin@example.com</span>
+            <button class="logout-btn" onclick="suporteAPI.logout()">Sair</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Região Esquerda - Gerenciamento de Usuários -->
+        <div class="left-panel" style="width: 70%;">
+            <div class="panel-header">
+                Gerenciamento de Usuários
+                <button class="action-btn btn-primary" onclick="suporteAPI.openModal('new-user-modal')" style="float: right; padding: 0.3rem 0.8rem; font-size: 0.9rem;">
+                    + Novo Usuário
+                </button>
+            </div>
+            <div style="padding: 1rem; overflow-y: auto;">
+                <table class="admin-table" id="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome de Usuário</th>
+                            <th>Email</th>
+                            <th>Função</th>
+                            <th>Especialidades</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Usuários serão carregados dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Região Direita - Gerenciamento de Especialidades -->
+        <div class="right-panel" style="width: 30%;">
+            <div class="detail-section">
+                <h3>Especialidades Cadastradas</h3>
+                <button class="action-btn btn-primary" onclick="suporteAPI.openModal('new-spec-modal')">
+                    + Nova Especialidade
+                </button>
+                <div id="specs-list" style="margin-top: 1rem;">
+                    <!-- Especialidades serão carregadas dinamicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Novo Usuário -->
+    <div id="new-user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Usuário</h2>
+                <span class="close" onclick="suporteAPI.closeModal('new-user-modal')">&times;</span>
+            </div>
+            <form id="new-user-form">
+                <div class="form-group">
+                    <label class="form-label" for="user-username">Nome de Usuário:</label>
+                    <input type="text" id="user-username" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="user-email">Email:</label>
+                    <input type="email" id="user-email" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="user-password">Senha:</label>
+                    <input type="password" id="user-password" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="user-role">Função:</label>
+                    <select id="user-role" class="form-select" required>
+                        <option value="">Selecione uma função</option>
+                        <option value="User">Colaborador</option>
+                        <option value="Technician">Técnico</option>
+                        <option value="Admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="action-btn btn-primary">Criar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Usuário -->
+    <div id="edit-user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Usuário</h2>
+                <span class="close" onclick="suporteAPI.closeModal('edit-user-modal')">&times;</span>
+            </div>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-id">
+                <div class="form-group">
+                    <label class="form-label" for="edit-user-username">Nome de Usuário:</label>
+                    <input type="text" id="edit-user-username" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-user-email">Email:</label>
+                    <input type="email" id="edit-user-email" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-user-role">Função:</label>
+                    <select id="edit-user-role" class="form-select" required>
+                        <option value="User">Colaborador</option>
+                        <option value="Technician">Técnico</option>
+                        <option value="Admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="action-btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Gerenciar Especialidades do Técnico -->
+    <div id="manage-specs-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gerenciar Especialidades</h2>
+                <span class="close" onclick="suporteAPI.closeModal('manage-specs-modal')">&times;</span>
+            </div>
+            <div>
+                <p><strong>Técnico:</strong> <span id="modal-tech-name"></span></p>
+                <input type="hidden" id="modal-tech-id">
+                
+                <h4>Especialidades Disponíveis:</h4>
+                <div id="available-specs" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 1rem; border-radius: 4px;">
+                    <!-- Especialidades disponíveis serão carregadas dinamicamente -->
+                </div>
+                
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button class="action-btn btn-primary" onclick="suporteAPI.closeModal('manage-specs-modal')">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Nova Especialidade -->
+    <div id="new-spec-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nova Especialidade</h2>
+                <span class="close" onclick="suporteAPI.closeModal('new-spec-modal')">&times;</span>
+            </div>
+            <form id="new-spec-form">
+                <div class="form-group">
+                    <label class="form-label" for="spec-name">Nome da Especialidade:</label>
+                    <input type="text" id="spec-name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="spec-description">Descrição:</label>
+                    <textarea id="spec-description" class="form-textarea"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="action-btn btn-primary">Criar Especialidade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/comum.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        // Funções específicas expostas globalmente
+        function editUser(userId) {
+            editarUsuario(userId);
+        }
+
+        function manageUserSpecs(userId, username) {
+            gerenciarEspecsUsuario(userId, username);
+        }
+
+        function toggleUserSpec(userId, specId, isAssigned) {
+            alternarEspecUsuario(userId, specId, isAssigned);
+        }
+
+        function deleteSpec(specId) {
+            excluirEspecialidade(specId);
+        }
+    </script>
+</body>
+</html>

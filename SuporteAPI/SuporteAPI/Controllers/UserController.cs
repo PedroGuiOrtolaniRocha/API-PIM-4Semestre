@@ -38,12 +38,13 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpPatch(Name = "UpdateUser")]
+    [HttpPatch("{id}",Name = "UpdateUser")]
     [Authorize]
-    public async Task<IActionResult> Patch(User user)
+    public async Task<IActionResult> Patch(int id, User user)
     {
         try
         {
+            user.Id = id;
             var resp = await _userService.UpdateUser(user);
             if (resp != null)
             {
