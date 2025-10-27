@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suporte API - Colaborador</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Sistema de Suporte - Colaborador</h1>
+        <div class="user-info">
+            <span>user@example.com</span>
+            <button class="logout-btn" onclick="suporteAPI.logout()">Sair</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Região Esquerda - Lista de Tickets -->
+        <div class="left-panel">
+            <div class="panel-header">
+                Meus Tickets
+                <button class="action-btn btn-primary" onclick="suporteAPI.openModal('new-ticket-modal')" style="float: right; padding: 0.3rem 0.8rem; font-size: 0.9rem;">
+                    + Novo Ticket
+                </button>
+            </div>
+            <div id="ticket-list">
+                <!-- Tickets serão carregados dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Região Central - Chat -->
+        <div class="center-panel">
+            <div class="chat-header" id="chat-header">
+                Selecione um ticket para iniciar o chat
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <!-- Mensagens serão carregadas dinamicamente -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
+                <button class="send-btn" id="send-btn">Enviar</button>
+            </div>
+        </div>
+
+        <!-- Região Direita - Detalhes do Ticket -->
+        <div class="right-panel">
+            <div class="detail-section">
+                <h3>Informações do Ticket</h3>
+                <div class="detail-item">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value" id="ticket-status">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Título:</div>
+                    <div class="detail-value" id="ticket-title">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Descrição:</div>
+                    <div class="detail-value" id="ticket-description">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Criado em:</div>
+                    <div class="detail-value" id="ticket-created">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Atualizado em:</div>
+                    <div class="detail-value" id="ticket-updated">-</div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Técnico Responsável</h3>
+                <div class="detail-item">
+                    <div class="detail-label">Nome:</div>
+                    <div class="detail-value" id="tech-name">Não atribuído</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Especialidade:</div>
+                    <div class="detail-value" id="tech-spec">-</div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Ações</h3>
+                <button class="action-btn btn-warning" onclick="requestEscalation()">
+                    Pedir Escalação para Técnico
+                </button>
+                <button class="action-btn btn-success" onclick="closeTicket()">
+                    Encerrar Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Novo Ticket -->
+    <div id="new-ticket-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Ticket</h2>
+                <span class="close" onclick="suporteAPI.closeModal('new-ticket-modal')">&times;</span>
+            </div>
+            <form id="new-ticket-form">
+                <div class="form-group">
+                    <label class="form-label" for="ticket-title-input">Título:</label>
+                    <input type="text" id="ticket-title-input" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ticket-description-input">Descrição:</label>
+                    <textarea id="ticket-description-input" class="form-textarea" required></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="action-btn btn-primary">Criar Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/comum.js"></script>
+    <script src="js/colaborador.js"></script>
+    <script>
+        // Funções específicas expostas globalmente
+        function requestEscalation() {
+            pedirEscalacao();
+        }
+        
+        function closeTicket() {
+            encerrarTicket();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suporte API - Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Sistema de Suporte</h1>
+                <p>Faça login para acessar o sistema</p>
+            </div>
+            
+            <div class="demo-accounts">
+                <h4>Contas de Demonstração:</h4>
+                <div class="demo-account" onclick="fillLogin('user@example.com', 'user123')">
+                    <strong>Colaborador:</strong> user@example.com / user123
+                </div>
+                <div class="demo-account" onclick="fillLogin('tecnico@example.com', 'tech123')">
+                    <strong>Técnico:</strong> tecnico@example.com / tech123
+                </div>
+                <div class="demo-account" onclick="fillLogin('admin@example.com', 'admin123')">
+                    <strong>Admin:</strong> admin@example.com / admin123
+                </div>
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email:</label>
+                    <input type="email" id="email" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">Senha:</label>
+                    <input type="password" id="password" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="action-btn btn-primary">Entrar</button>
+                </div>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                Sistema desenvolvido para demonstração acadêmica
+            </div>
+        </div>
+    </div>
+
+    <script src="js/comum.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>
