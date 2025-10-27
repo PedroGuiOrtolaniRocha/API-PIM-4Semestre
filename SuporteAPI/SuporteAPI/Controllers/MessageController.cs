@@ -17,18 +17,12 @@ namespace SuporteAPI.Controllers;
 [Route("[controller]")]
 public class MessageController : ControllerBase
 {
-    private readonly ILogger<MessageController> _logger;
-    private readonly IChatGenerator _chatGenerator;
-    private readonly IMessageRepository _messageRepository;
     private readonly IMessageService _messageService;
 
     public MessageController(ILogger<MessageController> logger, IChatGenerator chatGenerator, 
         IMessageRepository messageRepository, IMessageService messageService)
     {
         _messageService = messageService;
-        _messageRepository  = messageRepository;
-        _chatGenerator = chatGenerator;
-        _logger = logger;
     }
     
     [HttpGet("{ticketId}", Name = "GetMessagesByTicketId")]
