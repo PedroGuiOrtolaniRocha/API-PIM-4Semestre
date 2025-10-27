@@ -90,9 +90,8 @@ async function login(email, password) {
                     sessionStorage.setItem('loginRedirect', 'true');
                     
                     console.log('🔄 Executando redirecionamento...');
-                    setTimeout(() => {
-                        window.location.replace(paginaDestino);
-                    }, 5000);
+                    window.location.replace(paginaDestino);
+                    
                     
                 } catch (error) {
                     console.error('❌ Erro ao salvar no localStorage:', error);
