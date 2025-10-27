@@ -330,7 +330,7 @@ async function confirmarResolucaoTicket() {
         await enviarMensagemSistema(ticketSelecionado.id, `Resolução: ${textoResolucao}`, tecnicoAtual.id);
         
         // PATCH /Ticket/{id}/finish - Finalizar ticket
-        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/finish`, 'PATCH');
+        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/finish`, 'PATCH', textoResolucao);
         
         // Limpar campo de resolução
         document.getElementById('resolution-text').value = '';
