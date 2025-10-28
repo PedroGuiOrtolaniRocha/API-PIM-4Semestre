@@ -30,13 +30,8 @@ public class MessageController : ControllerBase
     public async Task<IActionResult> GetMessagesByTicketId(int ticketId)
     {
         var messages = await _messageService.GetMessagesByTicketId(ticketId);
-        List<MessageDto> response = new List<MessageDto>();
-        foreach (var msg in messages)
-        {
-            User author = await _messageService.GetAuthor(msg);
-            response.Add(new MessageDto(msg, author));
-        }
-        return Ok(response);
+        
+        return Ok(messages);
     }
 
     [HttpPost(Name = "SendMessage")]

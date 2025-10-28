@@ -163,6 +163,12 @@ body {
     color: white;
 }
 
+.message.suporte-bot {
+    background-color: #27ae60;
+    color: white;
+    border-left: 4px solid #2ecc71;
+}
+
 .message.tech {
     background-color: #27ae60;
     color: white;

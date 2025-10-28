@@ -152,7 +152,14 @@ function renderizarMensagensChat() {
         
         if (mensagem.botText) {
             const elementoMensagemBot = document.createElement('div');
-            elementoMensagemBot.className = 'message bot';
+            
+            // Apenas SuporteBot existe - aplicar classe especial se for ele
+            let classeMsg = 'message suporte-bot';
+            if (mensagem.authorName !== 'SuporteBot') {
+                classeMsg = 'message bot'; // fallback caso não seja SuporteBot
+            }
+            
+            elementoMensagemBot.className = classeMsg;
             elementoMensagemBot.innerHTML = `
                 <div>${mensagem.botText}</div>
                 <div class="message-time">${suporteAPI.formatarData(mensagem.time)}</div>
