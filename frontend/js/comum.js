@@ -30,19 +30,6 @@ function deleteCookie(name) {
     console.log('🗑️ Cookie removido:', name);
 }
 
-function debugCookies() {
-    console.log('🍪 DEBUG - Todos os cookies:');
-    const cookies = document.cookie.split(';');
-    if (cookies.length === 1 && cookies[0] === '') {
-        console.log('- Nenhum cookie encontrado');
-    } else {
-        cookies.forEach((cookie, index) => {
-            const [name, value] = cookie.trim().split('=');
-            console.log(`- ${name}: ${decodeURIComponent(value || '')}`);
-        });
-    }
-}
-
 function formatarData(dataString) {
     const data = new Date(dataString);
     return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR');
@@ -206,72 +193,6 @@ function verificarAutenticacao() {
     return true;
 }
 
-function debugStorage() {
-    console.log('🔍 DEBUG - Estado completo do armazenamento:');
-    
-    debugCookies();
-    
-    console.log('📦 localStorage:');
-    console.log('- Todas as chaves:', Object.keys(localStorage));
-    console.log('- authToken:', localStorage.getItem('authToken'));
-    console.log('- usuarioAtual:', localStorage.getItem('usuarioAtual'));
-    
-    console.log('🗂️ sessionStorage:');
-    console.log('- loginRedirect:', sessionStorage.getItem('loginRedirect'));
-    
-    console.log('🌐 URL atual:', window.location.href);
-    
-    const usuarioCookie = getCookie('usuarioAtual');
-    const usuarioLocal = localStorage.getItem('usuarioAtual');
-    const usuario = usuarioCookie || usuarioLocal;
-    
-    if (usuario) {
-        try {
-            const user = JSON.parse(usuario);
-            console.log('👤 Dados do usuário parseados:', user);
-        } catch (e) {
-            console.log('❌ Erro ao parsear usuário:', e);
-        }
-    }
-}
-
-function simularLogin(email, role) {
-    console.log('🧪 Simulando login para debug:', email, role);
-    
-    const dadosUsuario = {
-        email: email,
-        role: role,
-        id: role === 'User' ? 1 : role === 'Technician' ? 2 : 3
-    };
-    
-    const tokenFake = 'fake-jwt-token-' + Date.now();
-    
-    setCookie('authToken', tokenFake, 7);
-    setCookie('usuarioAtual', JSON.stringify(dadosUsuario), 7);
-    
-    localStorage.setItem('authToken', tokenFake);
-    localStorage.setItem('usuarioAtual', JSON.stringify(dadosUsuario));
-    
-    console.log('✅ Dados de teste salvos em cookies e localStorage');
-    console.log('Token:', tokenFake);
-    console.log('Usuário:', dadosUsuario);
-    
-    mostrarMensagem('Login simulado com sucesso! Recarregue a página.', 'success');
-}
-
-function limparStorage() {
-    console.log('🧹 Limpando todo o armazenamento...');
-    
-    deleteCookie('authToken');
-    deleteCookie('usuarioAtual');
-    
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    console.log('✅ Todo o armazenamento limpo');
-    mostrarMensagem('Armazenamento limpo com sucesso!', 'success');
-}
-
 window.suporteAPI = {
     abrirModal,
     fecharModal,
@@ -285,19 +206,6 @@ window.suporteAPI = {
     verificarAutenticacao,
     setCookie,
     getCookie,
-    deleteCookie,
-    debugStorage,
-    debugCookies,
-    simularLogin,
-    limparStorage,
-    debugLocalStorage: debugStorage
+    deleteCookie
 };
 
-console.log('Funções suporteAPI exportadas:', Object.keys(window.suporteAPI));
-
-console.log('Função logout disponível:', typeof window.suporteAPI.logout === 'function');
-
-window.testarLogout = function() {
-    console.log('🧪 TESTE DE LOGOUT CHAMADO MANUALMENTE');
-    logout();
-};

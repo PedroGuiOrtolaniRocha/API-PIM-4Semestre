@@ -75,18 +75,23 @@ async function carregarTickets() {
 
 async function carregarMensagens(ticketId) {
     try {
+        console.log('💬 Carregando mensagens do ticket:', ticketId);
         
         const resultado = await suporteAPI.chamarAPI(`/Message/${ticketId}`, 'GET');
         
         if (resultado && Array.isArray(resultado)) {
+            console.log('📋 Mensagens recebidas:', resultado);
             mensagens = resultado;
+            console.log('✅ Mensagens carregadas com sucesso:', mensagens.length, 'mensagens');
         } else {
+            console.log('⚠️ Não foi possível carregar mensagens, usando lista vazia');
             mensagens = [];
         }
         
         renderizarMensagensChat();
     } catch (error) {
         console.error('❌ Erro ao carregar mensagens:', error);
+        console.log('⚠️ Usando lista vazia como fallback');
         mensagens = [];
         renderizarMensagensChat();
         suporteAPI.mostrarMensagem('Erro ao carregar mensagens', 'error');
@@ -195,18 +200,22 @@ async function carregarInformacoesTecnico(ticket) {
     elemTechSpec.textContent = '-';
     
     if (!ticket.tecUserId) {
+        console.log('💡 Ticket sem técnico atribuído');
         return;
     }
     
     try {
+        console.log('👨‍💻 Buscando informações do técnico:', ticket.tecUserId);
         
         const tecnico = await suporteAPI.chamarAPI(`/User/${ticket.tecUserId}`, 'GET');
         
         if (tecnico) {
+            console.log('✅ Técnico encontrado:', tecnico.email);
             elemTechName.textContent = tecnico.email || 'Nome não disponível';
             
             await carregarEspecialidadesTecnico(ticket.tecUserId, elemTechSpec);
         } else {
+            console.log('⚠️ Técnico não encontrado');
             elemTechName.textContent = 'Técnico não encontrado';
         }
     } catch (error) {
@@ -218,6 +227,7 @@ async function carregarInformacoesTecnico(ticket) {
 
 async function carregarEspecialidadesTecnico(tecnicoId, elemTechSpec) {
     try {
+        console.log('🔧 Buscando especialidades do técnico:', tecnicoId);
         
         const registros = await suporteAPI.chamarAPI('/TecRegister', 'GET');
         
@@ -228,14 +238,18 @@ async function carregarEspecialidadesTecnico(tecnicoId, elemTechSpec) {
                 const especialidade = await suporteAPI.chamarAPI(`/Spec/${registroTecnico.specId}`, 'GET');
                 
                 if (especialidade && especialidade.name) {
+                    console.log('✅ Especialidade encontrada:', especialidade.name);
                     elemTechSpec.textContent = especialidade.name;
                 } else {
+                    console.log('⚠️ Especialidade não encontrada');
                     elemTechSpec.textContent = 'Especialidade não encontrada';
                 }
             } else {
+                console.log('⚠️ Registro de técnico não encontrado');
                 elemTechSpec.textContent = 'Sem especialidade registrada';
             }
         } else {
+            console.log('⚠️ Nenhum registro encontrado');
             elemTechSpec.textContent = 'Sem registros disponíveis';
         }
     } catch (error) {
@@ -272,6 +286,7 @@ function configurarEntradaChat() {
                 return;
             }
             
+            console.log('💬 Enviando mensagem:', texto);
             await enviarMensagemChat(ticketSelecionado.id, texto, usuarioAtual.id);
             entradaChat.value = '';
         };
@@ -292,7 +307,11 @@ function verificarChatAberto() {
     
     const chatAberto = ticketSelecionado.tecUserId && ticketSelecionado.tecUserId > 0;
     
-
+    console.log('🔍 Verificando status do chat:');
+    console.log('- Ticket ID:', ticketSelecionado.id);
+    console.log('- Status:', ticketSelecionado.status);
+    console.log('- Técnico ID:', ticketSelecionado.tecUserId);
+    console.log('- Chat aberto:', chatAberto ? '✅ SIM' : '❌ NÃO');
     
     return chatAberto;
 }
@@ -330,7 +349,7 @@ function atualizarEstadoChat() {
 
 async function enviarMensagemChat(ticketId, textoUsuario, autorId) {
     try {
-        console.log('� Usuário enviou mensagem para ticket:', ticketId);
+        console.log('📤 Enviando mensagem para ticket:', ticketId);
         
         const dadosMensagem = {
             ticketId: ticketId,
@@ -356,7 +375,7 @@ async function pedirEscalacao() {
     }
     
     try {
-        console.log('� Usuário solicitou escalação para ticket:', ticketSelecionado.id);
+        console.log('🔄 Solicitando escalação para ticket:', ticketSelecionado.id);
         
         await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/routeTicket`, 'PATCH');
         
@@ -390,7 +409,7 @@ async function encerrarTicket() {
     
     if (confirm('Tem certeza que deseja encerrar este ticket?')) {
         try {
-            console.log('� Usuário encerrou ticket:', ticketSelecionado.id);
+            console.log('🔐 Encerrando ticket:', ticketSelecionado.id);
             await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/finish`, 'PATCH');
             console.log('✅ Ticket finalizado com sucesso');
             await carregarTickets();
@@ -404,7 +423,7 @@ async function encerrarTicket() {
 
 async function criarTicket(dadosTicket) {
     try {
-        console.log('➕ Usuário criou novo ticket:', dadosTicket.title);
+        console.log('🎫 Criando novo ticket:', dadosTicket);
         
         const ticketDto = {
             title: dadosTicket.title,

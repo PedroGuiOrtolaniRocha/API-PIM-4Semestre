@@ -4,26 +4,23 @@ let especialidades = [];
 let registrosTecnicos = [];
 
 function inicializarPagina() {
-    console.log('🚀 Inicializando página do administrador');
     
     setTimeout(() => {
         let usuarioStorage = getCookie('usuarioAtual');
         if (!usuarioStorage) {
-            console.log('⚠️ Nenhum cookie de usuário encontrado, tentando localStorage...');
             usuarioStorage = localStorage.getItem('usuarioAtual');
         }
         
         if (usuarioStorage) {
             try {
                 const dadosUsuario = JSON.parse(usuarioStorage);
-                console.log('📋 Dados do usuário carregados dos cookies:', dadosUsuario);
                 
                 adminAtual = {
                     id: dadosUsuario.id || 3,
                     username: dadosUsuario.email,
                     role: dadosUsuario.role || 'Admin'
                 };
-                console.log('✅ Administrador autenticado:', adminAtual.username);
+                console.log('👤 Administrador logado:', adminAtual.username);
             } catch (error) {
                 console.error('❌ Erro ao carregar dados do administrador:', error);
                 adminAtual = {
@@ -31,10 +28,8 @@ function inicializarPagina() {
                     username: 'Admin Demo',
                     role: 'Admin'
                 };
-                console.log('⚠️ Usando dados demo devido a erro');
             }
         } else {
-            console.log('⚠️ Nenhum dado de usuário encontrado nos cookies nem localStorage - usando dados demo');
             adminAtual = {
                 id: 3,
                 username: 'Admin Demo',
@@ -59,9 +54,7 @@ function finalizarInicializacaoAdmin() {
 
 async function carregarUsuarios() {
     try {
-        console.log('👥 Carregando lista de usuários');
         usuarios = await suporteAPI.chamarAPI('/User');
-        console.log('✅ Usuários carregados:', usuarios.length);
         renderizarTabelaUsuarios();
     } catch (error) {
         console.error('❌ Erro ao carregar usuários:', error);
@@ -71,9 +64,7 @@ async function carregarUsuarios() {
 
 async function carregarEspecialidades() {
     try {
-        console.log('🔧 Carregando especialidades');
         especialidades = await suporteAPI.chamarAPI('/Spec');
-        console.log('✅ Especialidades carregadas:', especialidades.length);
         renderizarListaEspecialidades();
     } catch (error) {
         console.error('❌ Erro ao carregar especialidades:', error);
@@ -83,9 +74,7 @@ async function carregarEspecialidades() {
 
 async function carregarRegistrosTecnicos() {
     try {
-        console.log('📋 Carregando registros técnicos');
         registrosTecnicos = await suporteAPI.chamarAPI('/TecRegister');
-        console.log('✅ Registros técnicos carregados:', registrosTecnicos.length);
     } catch (error) {
         console.error('❌ Erro ao carregar registros técnicos:', error);
         suporteAPI.mostrarMensagem('Erro ao carregar registros técnicos', 'error');
@@ -97,7 +86,6 @@ function renderizarTabelaUsuarios() {
     if (!corpoTabela) return;
     
     corpoTabela.innerHTML = '';
-    console.log('Renderizando', usuarios.length, 'usuários na tabela');
 
     usuarios.forEach(usuario => {
         const especsUsuario = obterEspecialidadesUsuario(usuario.id);
@@ -128,7 +116,6 @@ function renderizarListaEspecialidades() {
     if (!listaEspecs) return;
     
     listaEspecs.innerHTML = '';
-    console.log('Renderizando', especialidades.length, 'especialidades');
 
     especialidades.forEach(spec => {
         const elementoSpec = document.createElement('div');
@@ -169,7 +156,7 @@ function obterNomeFuncao(role) {
 
 async function criarUsuario(dadosUsuario) {
     try {
-        console.log('👤 Criando novo usuário:', dadosUsuario.username);
+        console.log('➕ Admin criou novo usuário:', dadosUsuario.username);
         await suporteAPI.chamarAPI('/User', 'POST', dadosUsuario);
         console.log('✅ Usuário criado com sucesso');
         await carregarUsuarios();
@@ -182,7 +169,7 @@ async function criarUsuario(dadosUsuario) {
 
 async function atualizarUsuario(userId, dadosUsuario) {
     try {
-        console.log('✏️ Atualizando usuário:', userId);
+        console.log('✏️ Admin atualizou usuário:', userId);
         await suporteAPI.chamarAPI('/User', 'PATCH', dadosUsuario);
         console.log('✅ Usuário atualizado com sucesso');
         await carregarUsuarios();
@@ -200,7 +187,6 @@ function editarUsuario(userId) {
         return;
     }
 
-    console.log('Editando usuário:', usuario.username);
     document.getElementById('edit-user-id').value = usuario.id;
     document.getElementById('edit-user-username').value = usuario.username;
     document.getElementById('edit-user-email').value = usuario.email;
@@ -210,7 +196,6 @@ function editarUsuario(userId) {
 }
 
 async function gerenciarEspecsUsuario(userId, username) {
-    console.log('Gerenciando especialidades do usuário:', username);
     document.getElementById('modal-tech-id').value = userId;
     document.getElementById('modal-tech-name').textContent = username;
 
@@ -241,13 +226,12 @@ async function gerenciarEspecsUsuario(userId, username) {
 async function alternarEspecUsuario(userId, specId, estaAtribuida) {
     try {
         if (estaAtribuida) {
-            console.log('Adicionando especialidade', specId, 'ao usuário', userId);
             await suporteAPI.chamarAPI('/TecRegister', 'POST', {
                 userId: userId,
                 specId: specId
             });
         } else {
-            console.log('Removendo especialidade', specId, 'do usuário', userId);
+            console.log('🗑️ Admin removeu especialidade', specId, 'do usuário', userId);
             const registroTecnico = registrosTecnicos.find(rt => rt.userId === userId && rt.specId === specId);
             if (registroTecnico) {
                 await suporteAPI.chamarAPI(`/TecRegister/${registroTecnico.id}`, 'DELETE');
@@ -265,7 +249,7 @@ async function alternarEspecUsuario(userId, specId, estaAtribuida) {
 
 async function criarEspecialidade(dadosEspec) {
     try {
-        console.log('Criando nova especialidade:', dadosEspec.name);
+        console.log('🔧 Admin criou nova especialidade:', dadosEspec.name);
         await suporteAPI.chamarAPI('/Spec', 'POST', dadosEspec);
         await carregarEspecialidades();
         suporteAPI.mostrarMensagem('Especialidade criada com sucesso', 'success');
@@ -281,7 +265,7 @@ async function excluirEspecialidade(specId) {
     }
 
     try {
-        console.log('Excluindo especialidade:', specId);
+        console.log('🗑️ Admin excluiu especialidade:', specId);
         await suporteAPI.chamarAPI(`/Spec/${specId}`, 'DELETE');
         await carregarEspecialidades();
         await carregarRegistrosTecnicos();

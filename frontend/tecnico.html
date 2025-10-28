@@ -89,9 +89,6 @@
                 <button class="action-btn btn-success" onclick="resolveTicket()">
                     Encerrar Chamado com Resolução
                 </button>
-                <button class="action-btn btn-warning" onclick="updateTicketStatus()">
-                    Atualizar Status para "Em Andamento"
-                </button>
                 <p style="color: #666; font-size: 0.9rem; margin-top: 1rem; font-style: italic;">
                     ℹ️ Técnicos podem apenas visualizar mensagens, não podem enviar mensagens de chat
                 </p>
@@ -122,12 +119,6 @@
     <script src="js/comum.js"></script>
     <script src="js/tecnico.js"></script>
     <script>
-        // Funções específicas expostas globalmente
-        function updateTicketStatus() {
-            atualizarStatusTicket();
-        }
-
-        // Função removida: Técnicos não podem solicitar mais informações via chat
 
         function resolveTicket() {
             resolverTicket();
