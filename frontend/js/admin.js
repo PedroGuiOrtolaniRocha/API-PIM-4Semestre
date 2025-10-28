@@ -1,16 +1,12 @@
-// Estado do admin
 let adminAtual = null;
 let usuarios = [];
 let especialidades = [];
 let registrosTecnicos = [];
 
-// Inicializar página
 function inicializarPagina() {
     console.log('🚀 Inicializando página do administrador');
     
-    // Aguardar carregamento completo
     setTimeout(() => {
-        // Carregar dados do usuário dos cookies primeiro, depois localStorage como fallback
         let usuarioStorage = getCookie('usuarioAtual');
         if (!usuarioStorage) {
             console.log('⚠️ Nenhum cookie de usuário encontrado, tentando localStorage...');
@@ -51,23 +47,19 @@ function inicializarPagina() {
 }
 
 function finalizarInicializacaoAdmin() {
-    // Atualizar info do usuário no header
     const infoUsuario = document.querySelector('.user-info span');
     if (infoUsuario) {
         infoUsuario.textContent = adminAtual.username;
     }
     
-    // Carregar dados iniciais
     carregarUsuarios();
     carregarEspecialidades();
     carregarRegistrosTecnicos();
 }
 
-// Carregar usuários
 async function carregarUsuarios() {
     try {
         console.log('👥 Carregando lista de usuários');
-        // GET /User - Lista todos os usuários
         usuarios = await suporteAPI.chamarAPI('/User');
         console.log('✅ Usuários carregados:', usuarios.length);
         renderizarTabelaUsuarios();
@@ -77,11 +69,9 @@ async function carregarUsuarios() {
     }
 }
 
-// Carregar especialidades
 async function carregarEspecialidades() {
     try {
         console.log('🔧 Carregando especialidades');
-        // GET /Spec - Lista todas as especialidades
         especialidades = await suporteAPI.chamarAPI('/Spec');
         console.log('✅ Especialidades carregadas:', especialidades.length);
         renderizarListaEspecialidades();
@@ -91,11 +81,9 @@ async function carregarEspecialidades() {
     }
 }
 
-// Carregar registros técnicos
 async function carregarRegistrosTecnicos() {
     try {
         console.log('📋 Carregando registros técnicos');
-        // GET /TecRegister - Lista todos os registros técnicos
         registrosTecnicos = await suporteAPI.chamarAPI('/TecRegister');
         console.log('✅ Registros técnicos carregados:', registrosTecnicos.length);
     } catch (error) {
@@ -104,7 +92,6 @@ async function carregarRegistrosTecnicos() {
     }
 }
 
-// Renderizar tabela de usuários
 function renderizarTabelaUsuarios() {
     const corpoTabela = document.getElementById('users-table-body');
     if (!corpoTabela) return;
@@ -136,7 +123,6 @@ function renderizarTabelaUsuarios() {
     });
 }
 
-// Renderizar lista de especialidades
 function renderizarListaEspecialidades() {
     const listaEspecs = document.getElementById('specs-list');
     if (!listaEspecs) return;
@@ -163,7 +149,6 @@ function renderizarListaEspecialidades() {
     });
 }
 
-// Obter especialidades do usuário
 function obterEspecialidadesUsuario(userId) {
     return registrosTecnicos
         .filter(rt => rt.userId === userId)
@@ -173,7 +158,6 @@ function obterEspecialidadesUsuario(userId) {
         });
 }
 
-// Obter nome da função
 function obterNomeFuncao(role) {
     const nomesFuncoes = {
         'User': 'Colaborador',
@@ -183,11 +167,9 @@ function obterNomeFuncao(role) {
     return nomesFuncoes[role] || role;
 }
 
-// Criar usuário
 async function criarUsuario(dadosUsuario) {
     try {
         console.log('👤 Criando novo usuário:', dadosUsuario.username);
-        // POST /User - Criar novo usuário
         await suporteAPI.chamarAPI('/User', 'POST', dadosUsuario);
         console.log('✅ Usuário criado com sucesso');
         await carregarUsuarios();
@@ -198,11 +180,9 @@ async function criarUsuario(dadosUsuario) {
     }
 }
 
-// Atualizar usuário
 async function atualizarUsuario(userId, dadosUsuario) {
     try {
         console.log('✏️ Atualizando usuário:', userId);
-        // PATCH /User - Atualizar usuário existente
         await suporteAPI.chamarAPI('/User', 'PATCH', dadosUsuario);
         console.log('✅ Usuário atualizado com sucesso');
         await carregarUsuarios();
@@ -213,7 +193,6 @@ async function atualizarUsuario(userId, dadosUsuario) {
     }
 }
 
-// Editar usuário
 function editarUsuario(userId) {
     const usuario = usuarios.find(u => u.id === userId);
     if (!usuario) {
@@ -230,7 +209,6 @@ function editarUsuario(userId) {
     suporteAPI.abrirModal('edit-user-modal');
 }
 
-// Gerenciar especialidades do usuário
 async function gerenciarEspecsUsuario(userId, username) {
     console.log('Gerenciando especialidades do usuário:', username);
     document.getElementById('modal-tech-id').value = userId;
@@ -260,7 +238,6 @@ async function gerenciarEspecsUsuario(userId, username) {
     suporteAPI.abrirModal('manage-specs-modal');
 }
 
-// Alternar especialidade do usuário
 async function alternarEspecUsuario(userId, specId, estaAtribuida) {
     try {
         if (estaAtribuida) {
@@ -286,7 +263,6 @@ async function alternarEspecUsuario(userId, specId, estaAtribuida) {
     }
 }
 
-// Criar especialidade
 async function criarEspecialidade(dadosEspec) {
     try {
         console.log('Criando nova especialidade:', dadosEspec.name);
@@ -299,7 +275,6 @@ async function criarEspecialidade(dadosEspec) {
     }
 }
 
-// Excluir especialidade
 async function excluirEspecialidade(specId) {
     if (!confirm('Tem certeza que deseja excluir esta especialidade?')) {
         return;
@@ -318,11 +293,9 @@ async function excluirEspecialidade(specId) {
     }
 }
 
-// Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     inicializarPagina();
     
-    // Formulário novo usuário
     const formNovoUsuario = document.getElementById('new-user-form');
     if (formNovoUsuario) {
         formNovoUsuario.addEventListener('submit', function(e) {
@@ -338,12 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
             criarUsuario(dadosUsuario);
             suporteAPI.fecharModal('new-user-modal');
             
-            // Limpar formulário
             formNovoUsuario.reset();
         });
     }
 
-    // Formulário editar usuário
     const formEditarUsuario = document.getElementById('edit-user-form');
     if (formEditarUsuario) {
         formEditarUsuario.addEventListener('submit', function(e) {
@@ -361,7 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Formulário nova especialidade
     const formNovaSpec = document.getElementById('new-spec-form');
     if (formNovaSpec) {
         formNovaSpec.addEventListener('submit', function(e) {
@@ -375,7 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
             criarEspecialidade(dadosSpec);
             suporteAPI.fecharModal('new-spec-modal');
             
-            // Limpar formulário
             formNovaSpec.reset();
         });
     }

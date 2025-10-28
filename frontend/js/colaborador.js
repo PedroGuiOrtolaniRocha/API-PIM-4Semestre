@@ -1,21 +1,17 @@
-// Estado do colaborador
 let usuarioAtual = null;
 let ticketSelecionado = null;
 let tickets = [];
 let mensagens = [];
 
-// Inicializar página
 function inicializarPagina() {
     console.log('🚀 Inicializando página do colaborador');
     console.log('📍 URL atual:', window.location.href);
     console.log('⏰ Timestamp:', new Date().toISOString());
     
-    // Aguardar um momento para garantir que todos os scripts carregaram
     setTimeout(() => {
         console.log('🔍 Verificando estado inicial do localStorage:');
         console.log('📊 Total de itens no localStorage:', localStorage.length);
         
-        // Listar todos os itens do localStorage
         if (localStorage.length === 0) {
             console.log('⚠️ localStorage está completamente vazio!');
         } else {
@@ -27,7 +23,6 @@ function inicializarPagina() {
             }
         }
         
-        // Verificações específicas - cookies primeiro, localStorage como fallback
         const authTokenCookie = getCookie('authToken');
         const authTokenStorage = localStorage.getItem('authToken');
         const usuarioAtualCookie = getCookie('usuarioAtual');
@@ -39,7 +34,6 @@ function inicializarPagina() {
         console.log('👤 usuarioAtual (localStorage):', usuarioAtualStorage ? `presente: ${usuarioAtualStorage}` : '❌ ausente');
         console.log('🔧 suporteAPI disponível:', typeof suporteAPI !== 'undefined');
         
-        // Verificar se suporteAPI foi carregado
         if (typeof suporteAPI === 'undefined') {
             console.error('❌ suporteAPI não foi carregado ainda - aguardando...');
             setTimeout(inicializarPagina, 500);
@@ -52,7 +46,6 @@ function inicializarPagina() {
 }
 
 function continuarInicializacao() {
-    // Carregar dados do usuário dos cookies primeiro, depois localStorage como fallback
     let usuarioStorage = getCookie('usuarioAtual');
     if (!usuarioStorage) {
         console.log('⚠️ Nenhum cookie de usuário encontrado, tentando localStorage...');
@@ -72,7 +65,6 @@ function continuarInicializacao() {
             console.log('✅ Colaborador autenticado:', usuarioAtual.username);
         } catch (error) {
             console.error('❌ Erro ao carregar dados do usuário:', error);
-            // Usar dados demo ao invés de fazer logout
             usuarioAtual = {
                 id: 1,
                 username: 'Usuário Demo',
@@ -96,19 +88,16 @@ function continuarInicializacao() {
         };
     }
     
-    // Continuar com a inicialização da página
     finalizarInicializacao();
 }
 
 function finalizarInicializacao() {
     console.log('🎨 Finalizando inicialização da página...');
     
-    // Atualizar info do usuário no header
     const infoUsuario = document.querySelector('.user-info span');
     if (infoUsuario) {
         infoUsuario.textContent = usuarioAtual.username;
         
-        // Adicionar indicador visual se é usuário demo
         if (usuarioAtual.username.includes('Demo')) {
             infoUsuario.style.color = '#ff6b6b';
             infoUsuario.title = 'Usuário demo - dados não salvos no servidor';
@@ -117,14 +106,12 @@ function finalizarInicializacao() {
         console.log('⚠️ Elemento .user-info span não encontrado no DOM');
     }
     
-    // Mostrar informações de debug no console
     console.log('📋 Status final da inicialização:');
     console.log('- Usuario atual:', usuarioAtual);
     console.log('- Token presente (cookie):', !!getCookie('authToken'));
     console.log('- Token presente (localStorage):', !!localStorage.getItem('authToken'));
     console.log('- Modo:', usuarioAtual.username.includes('Demo') ? 'DEMO' : 'AUTENTICADO');
     
-    // Instruções de debug para o console
     console.log('');
     console.log('🛠️ COMANDOS DE DEBUG DISPONÍVEIS:');
     console.log('- debugCookies() - Ver estado dos cookies');
@@ -134,18 +121,16 @@ function finalizarInicializacao() {
     console.log('- location.reload() - Recarregar página');
     console.log('');
     
-    // Configurar entrada de chat
     configurarEntradaChat();
     
-    // Carregar tickets
+    atualizarEstadoChat();
+    
     carregarTickets();
 }
 
-// Carregar tickets do usuário
 async function carregarTickets() {
     try {
         console.log('🎫 Carregando tickets do usuário:', usuarioAtual.id);
-        // GET /Ticket - Lista todos os tickets (filtrar no cliente por userId se necessário)
         tickets = await suporteAPI.chamarAPI('/Ticket');
         console.log('✅ Tickets carregados:', tickets.length);
         renderizarListaTickets();
@@ -155,7 +140,6 @@ async function carregarTickets() {
     }
 }
 
-// Carregar mensagens do ticket
 async function carregarMensagens(ticketId) {
     try {
         console.log('💬 Carregando mensagens do ticket:', ticketId);
@@ -180,7 +164,6 @@ async function carregarMensagens(ticketId) {
     }
 }
 
-// Renderizar lista de tickets
 function renderizarListaTickets() {
     const listaTickets = document.getElementById('ticket-list');
     if (!listaTickets) return;
@@ -209,31 +192,22 @@ function renderizarListaTickets() {
     });
 }
 
-// Selecionar ticket
 async function selecionarTicket(ticket) {
     console.log('Ticket selecionado:', ticket.title);
     ticketSelecionado = ticket;
     
-    // Atualizar estado ativo
     document.querySelectorAll('.list-item').forEach(item => {
         item.classList.remove('active');
     });
     event.currentTarget.classList.add('active');
     
-    // Carregar mensagens
     carregarMensagens(ticket.id);
     
-    // Atualizar cabeçalho do chat
-    const cabecalhoChat = document.getElementById('chat-header');
-    if (cabecalhoChat) {
-        cabecalhoChat.textContent = `Chat - ${ticket.title}`;
-    }
-    
-    // Atualizar detalhes do ticket (agora assíncrono)
     await atualizarDetalhesTicket(ticket);
+    
+    atualizarEstadoChat();
 }
 
-// Renderizar mensagens do chat
 function renderizarMensagensChat() {
     const chatMensagens = document.getElementById('chat-messages');
     if (!chatMensagens) return;
@@ -266,7 +240,6 @@ function renderizarMensagensChat() {
     chatMensagens.scrollTop = chatMensagens.scrollHeight;
 }
 
-// Atualizar detalhes do ticket
 async function atualizarDetalhesTicket(ticket) {
     const elementos = {
         'ticket-status': ticket.status,
@@ -283,22 +256,18 @@ async function atualizarDetalhesTicket(ticket) {
         }
     });
     
-    // Carregar informações do técnico responsável
     await carregarInformacoesTecnico(ticket);
 }
 
-// Carregar informações do técnico responsável
 async function carregarInformacoesTecnico(ticket) {
     const elemTechName = document.getElementById('tech-name');
     const elemTechSpec = document.getElementById('tech-spec');
     
     if (!elemTechName || !elemTechSpec) return;
     
-    // Reset para valores padrão
     elemTechName.textContent = 'Não atribuído';
     elemTechSpec.textContent = '-';
     
-    // Se não há técnico atribuído, não fazer requisição
     if (!ticket.tecUserId) {
         console.log('💡 Ticket sem técnico atribuído');
         return;
@@ -307,14 +276,12 @@ async function carregarInformacoesTecnico(ticket) {
     try {
         console.log('👨‍💻 Buscando informações do técnico:', ticket.tecUserId);
         
-        // GET /User/{id} - Buscar dados do técnico
         const tecnico = await suporteAPI.chamarAPI(`/User/${ticket.tecUserId}`, 'GET');
         
         if (tecnico) {
             console.log('✅ Técnico encontrado:', tecnico.email);
             elemTechName.textContent = tecnico.email || 'Nome não disponível';
             
-            // Buscar especialidades do técnico se disponível
             await carregarEspecialidadesTecnico(ticket.tecUserId, elemTechSpec);
         } else {
             console.log('⚠️ Técnico não encontrado');
@@ -327,19 +294,16 @@ async function carregarInformacoesTecnico(ticket) {
     }
 }
 
-// Carregar especialidades do técnico
 async function carregarEspecialidadesTecnico(tecnicoId, elemTechSpec) {
     try {
         console.log('🔧 Buscando especialidades do técnico:', tecnicoId);
         
-        // GET /TecRegister - Buscar registros do técnico
         const registros = await suporteAPI.chamarAPI('/TecRegister', 'GET');
         
         if (registros && Array.isArray(registros)) {
             const registroTecnico = registros.find(reg => reg.userId === tecnicoId);
             
             if (registroTecnico && registroTecnico.specId) {
-                // GET /Spec/{id} - Buscar especialidade
                 const especialidade = await suporteAPI.chamarAPI(`/Spec/${registroTecnico.specId}`, 'GET');
                 
                 if (especialidade && especialidade.name) {
@@ -363,7 +327,6 @@ async function carregarEspecialidadesTecnico(tecnicoId, elemTechSpec) {
     }
 }
 
-// Configurar entrada de chat
 function configurarEntradaChat() {
     const entradaChat = document.getElementById('chat-input');
     const botaoEnviar = document.getElementById('send-btn');
@@ -371,11 +334,30 @@ function configurarEntradaChat() {
     if (entradaChat && botaoEnviar) {
         const enviarMensagem = async () => {
             const texto = entradaChat.value.trim();
-            if (texto && ticketSelecionado && usuarioAtual) {
-                console.log('Enviando mensagem:', texto);
-                await enviarMensagem(ticketSelecionado.id, texto, usuarioAtual.id);
-                entradaChat.value = '';
+            
+            if (!texto) {
+                suporteAPI.mostrarMensagem('Digite uma mensagem antes de enviar', 'warning');
+                return;
             }
+            
+            if (!ticketSelecionado) {
+                suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
+                return;
+            }
+            
+            if (!usuarioAtual) {
+                suporteAPI.mostrarMensagem('Usuário não identificado', 'error');
+                return;
+            }
+            
+            if (!verificarChatAberto()) {
+                suporteAPI.mostrarMensagem('Chat não disponível. Solicite escalação para um técnico primeiro.', 'warning');
+                return;
+            }
+            
+            console.log('💬 Enviando mensagem:', texto);
+            await enviarMensagemChat(ticketSelecionado.id, texto, usuarioAtual.id);
+            entradaChat.value = '';
         };
         
         botaoEnviar.onclick = enviarMensagem;
@@ -387,12 +369,57 @@ function configurarEntradaChat() {
     }
 }
 
-// Enviar mensagem
-async function enviarMensagem(ticketId, textoUsuario, autorId) {
+function verificarChatAberto() {
+    if (!ticketSelecionado) {
+        return false;
+    }
+    
+    const chatAberto = ticketSelecionado.tecUserId && ticketSelecionado.tecUserId > 0;
+    
+    console.log('🔍 Verificando status do chat:');
+    console.log('- Ticket ID:', ticketSelecionado.id);
+    console.log('- Status:', ticketSelecionado.status);
+    console.log('- Técnico ID:', ticketSelecionado.tecUserId);
+    console.log('- Chat aberto:', chatAberto ? '✅ SIM' : '❌ NÃO');
+    
+    return chatAberto;
+}
+
+function atualizarEstadoChat() {
+    const entradaChat = document.getElementById('chat-input');
+    const botaoEnviar = document.getElementById('send-btn');
+    const cabecalhoChat = document.getElementById('chat-header');
+    
+    if (!ticketSelecionado) {
+        if (entradaChat) entradaChat.disabled = true;
+        if (botaoEnviar) botaoEnviar.disabled = true;
+        if (cabecalhoChat) cabecalhoChat.textContent = 'Selecione um ticket para iniciar o chat';
+        return;
+    }
+    
+    const chatAberto = verificarChatAberto();
+    
+    if (chatAberto) {
+        if (entradaChat) {
+            entradaChat.disabled = false;
+            entradaChat.placeholder = 'Digite sua mensagem...';
+        }
+        if (botaoEnviar) botaoEnviar.disabled = false;
+        if (cabecalhoChat) cabecalhoChat.textContent = `Chat - ${ticketSelecionado.title} 💬`;
+    } else {
+        if (entradaChat) {
+            entradaChat.disabled = true;
+            entradaChat.placeholder = 'Solicite escalação para um técnico para habilitar o chat';
+        }
+        if (botaoEnviar) botaoEnviar.disabled = true;
+        if (cabecalhoChat) cabecalhoChat.textContent = `${ticketSelecionado.title} - ⚠️ Chat indisponível`;
+    }
+}
+
+async function enviarMensagemChat(ticketId, textoUsuario, autorId) {
     try {
         console.log('📤 Enviando mensagem para ticket:', ticketId);
         
-        // POST /Message - Baseado no Swagger, usando MessageDto
         const dadosMensagem = {
             ticketId: ticketId,
             userText: textoUsuario,
@@ -410,7 +437,6 @@ async function enviarMensagem(ticketId, textoUsuario, autorId) {
     }
 }
 
-// Pedir escalação
 async function pedirEscalacao() {
     if (!ticketSelecionado) {
         suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
@@ -420,21 +446,20 @@ async function pedirEscalacao() {
     try {
         console.log('🔄 Solicitando escalação para ticket:', ticketSelecionado.id);
         
-        // PATCH /Ticket/{id}/routeTicket - Rotear ticket para técnico disponível
         await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/routeTicket`, 'PATCH');
         
         console.log('✅ Ticket escalado com sucesso');
         
-        // Recarregar tickets para refletir mudanças
         await carregarTickets();
         
-        // Atualizar detalhes do ticket selecionado
         if (ticketSelecionado) {
             const ticketsAtualizados = await suporteAPI.chamarAPI('/Ticket', 'GET');
             const ticketAtualizado = ticketsAtualizados.find(t => t.id === ticketSelecionado.id);
             if (ticketAtualizado) {
                 await atualizarDetalhesTicket(ticketAtualizado);
                 ticketSelecionado = ticketAtualizado;
+                
+                atualizarEstadoChat();
             }
         }
         
@@ -445,7 +470,6 @@ async function pedirEscalacao() {
     }
 }
 
-// Encerrar ticket
 async function encerrarTicket() {
     if (!ticketSelecionado) {
         suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
@@ -455,7 +479,6 @@ async function encerrarTicket() {
     if (confirm('Tem certeza que deseja encerrar este ticket?')) {
         try {
             console.log('🔐 Encerrando ticket:', ticketSelecionado.id);
-            // PATCH /Ticket/{id}/finish - Endpoint específico para finalizar ticket
             await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/finish`, 'PATCH');
             console.log('✅ Ticket finalizado com sucesso');
             await carregarTickets();
@@ -467,12 +490,10 @@ async function encerrarTicket() {
     }
 }
 
-// Criar ticket
 async function criarTicket(dadosTicket) {
     try {
         console.log('🎫 Criando novo ticket:', dadosTicket);
         
-        // POST /Ticket - Baseado no TicketCreateDto do Swagger
         const ticketDto = {
             title: dadosTicket.title,
             description: dadosTicket.description,
@@ -490,11 +511,9 @@ async function criarTicket(dadosTicket) {
     }
 }
 
-// Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     inicializarPagina();
     
-    // Formulário de novo ticket
     const formNovoTicket = document.getElementById('new-ticket-form');
     if (formNovoTicket) {
         formNovoTicket.addEventListener('submit', function(e) {
@@ -515,7 +534,6 @@ document.addEventListener('DOMContentLoaded', () => {
             criarTicket(dadosTicket);
             suporteAPI.closeModal('new-ticket-modal');
             
-            // Limpar formulário
             document.getElementById('ticket-title-input').value = '';
             document.getElementById('ticket-description-input').value = '';
         });
