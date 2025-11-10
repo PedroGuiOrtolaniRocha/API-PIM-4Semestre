@@ -140,31 +140,22 @@ function renderizarMensagensChat() {
     chatMensagens.innerHTML = '';
     
     mensagens.forEach(mensagem => {
-        if (mensagem.userText) {
+        if (mensagem.text) {
             const elementoMensagem = document.createElement('div');
-            elementoMensagem.className = 'message user';
+            
+            // Determinar a classe baseada no authorName
+            let classeMsg = 'message user'; // padrão para usuário
+            if (mensagem.authorName === 'SuporteBot') {
+                classeMsg = 'message suporte-bot';
+            }
+            
+            elementoMensagem.className = classeMsg;
             elementoMensagem.innerHTML = `
-                <div>${mensagem.userText}</div>
+                <div class="message-author">${mensagem.authorName}</div>
+                <div>${mensagem.text}</div>
                 <div class="message-time">${suporteAPI.formatarData(mensagem.time)}</div>
             `;
             chatMensagens.appendChild(elementoMensagem);
-        }
-        
-        if (mensagem.botText) {
-            const elementoMensagemBot = document.createElement('div');
-            
-            // Apenas SuporteBot existe - aplicar classe especial se for ele
-            let classeMsg = 'message suporte-bot';
-            if (mensagem.authorName !== 'SuporteBot') {
-                classeMsg = 'message bot'; // fallback caso não seja SuporteBot
-            }
-            
-            elementoMensagemBot.className = classeMsg;
-            elementoMensagemBot.innerHTML = `
-                <div>${mensagem.botText}</div>
-                <div class="message-time">${suporteAPI.formatarData(mensagem.time)}</div>
-            `;
-            chatMensagens.appendChild(elementoMensagemBot);
         }
     });
     
