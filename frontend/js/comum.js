@@ -97,6 +97,11 @@ async function chamarAPI(endpoint, metodo = 'GET', dados = null) {
             logout();
             return;
         }
+
+        if (response.status === 400) {
+            const erroDados = await response.json();
+            mostrarMensagem(`Erro: ${erroDados.message || 'Requisição inválida.'}`, 'error');
+        }
         
         if (!response.ok) {
             throw new Error(`Erro HTTP! Status: ${response.status}`);
@@ -106,8 +111,6 @@ async function chamarAPI(endpoint, metodo = 'GET', dados = null) {
         console.log('Resposta da API recebida:', resultado);
         return resultado;
     } catch (error) {
-        console.error('Falha na chamada da API:', error);
-        mostrarMensagem('Erro na comunicação com o servidor', 'error');
         throw error;
     }
 }

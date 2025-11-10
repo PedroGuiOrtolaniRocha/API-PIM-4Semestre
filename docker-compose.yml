@@ -1,19 +1,6 @@
 version: '3.9'
 
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "5262:5262"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Server=db;Database=SuporteDB;User=sa;Password=Teste&&987!
-      - ASPNETCORE_URLS=http://*:5262
-    depends_on:
-      - db
-
   db:
     build:
       context: .

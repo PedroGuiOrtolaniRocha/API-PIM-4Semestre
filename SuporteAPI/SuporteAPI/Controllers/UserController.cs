@@ -40,7 +40,7 @@ public class UserController : ControllerBase
 
     [HttpPatch("{id}",Name = "UpdateUser")]
     [Authorize]
-    public async Task<IActionResult> Patch(int id, User user)
+    public async Task<IActionResult> Patch(int id, [FromBody] User user)
     {
         try
         {

@@ -62,6 +62,7 @@ public class SpecController : ControllerBase
             {
                 return NotFound();
             }
+
             return Ok(updated);
         }
         catch (Exception ex)
@@ -69,5 +70,24 @@ public class SpecController : ControllerBase
             throw SuporteApiException.HigienizeException(ex);
         }
     }
-    
+
+    [HttpDelete("{id}",Name = "DeleteSpec")]
+    [Authorize]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            bool deleted = await _specService.DeleteSpec(id);
+            if (!deleted)
+            {
+                return NotFound();
+            }
+
+            return Ok(deleted);
+        }
+        catch (Exception ex)
+        {
+            throw SuporteApiException.HigienizeException(ex);
+        }
+    }
 }
