@@ -53,32 +53,21 @@ function finalizarInicializacaoAdmin() {
 }
 
 async function carregarUsuarios() {
-    try {
+
         usuarios = await suporteAPI.chamarAPI('/User');
         renderizarTabelaUsuarios();
-    } catch (error) {
-        console.error('❌ Erro ao carregar usuários:', error);
-        suporteAPI.mostrarMensagem('Erro ao carregar usuários', 'error');
-    }
 }
 
 async function carregarEspecialidades() {
-    try {
+
         especialidades = await suporteAPI.chamarAPI('/Spec');
         renderizarListaEspecialidades();
-    } catch (error) {
-        console.error('❌ Erro ao carregar especialidades:', error);
-        suporteAPI.mostrarMensagem('Erro ao carregar especialidades', 'error');
-    }
+    
 }
 
 async function carregarRegistrosTecnicos() {
-    try {
         registrosTecnicos = await suporteAPI.chamarAPI('/TecRegister');
-    } catch (error) {
-        console.error('❌ Erro ao carregar registros técnicos:', error);
-        suporteAPI.mostrarMensagem('Erro ao carregar registros técnicos', 'error');
-    }
+    
 }
 
 function renderizarTabelaUsuarios() {
@@ -155,29 +144,21 @@ function obterNomeFuncao(role) {
 }
 
 async function criarUsuario(dadosUsuario) {
-    try {
+
         console.log('➕ Admin criou novo usuário:', dadosUsuario.username);
         await suporteAPI.chamarAPI('/User', 'POST', dadosUsuario);
         console.log('✅ Usuário criado com sucesso');
         await carregarUsuarios();
         suporteAPI.mostrarMensagem('Usuário criado com sucesso', 'success');
-    } catch (error) {
-        console.error('❌ Erro ao criar usuário:', error);
-        suporteAPI.mostrarMensagem('Erro ao criar usuário', 'error');
-    }
 }
 
-async function atualizarUsuario(userId, dadosUsuario) {
-    try {
-        console.log('✏️ Admin atualizou usuário:', userId);
+async function atualizarUsuario(dadosUsuario) {
+
         await suporteAPI.chamarAPI('/User', 'PATCH', dadosUsuario);
         console.log('✅ Usuário atualizado com sucesso');
         await carregarUsuarios();
         suporteAPI.mostrarMensagem('Usuário atualizado com sucesso', 'success');
-    } catch (error) {
-        console.error('❌ Erro ao atualizar usuário:', error);
-        suporteAPI.mostrarMensagem('Erro ao atualizar usuário', 'error');
-    }
+    
 }
 
 function editarUsuario(userId) {
@@ -224,7 +205,6 @@ async function gerenciarEspecsUsuario(userId, username) {
 }
 
 async function alternarEspecUsuario(userId, specId, estaAtribuida) {
-    try {
         if (estaAtribuida) {
             await suporteAPI.chamarAPI('/TecRegister', 'POST', {
                 userId: userId,
@@ -241,40 +221,28 @@ async function alternarEspecUsuario(userId, specId, estaAtribuida) {
         await carregarRegistrosTecnicos();
         await carregarUsuarios();
         suporteAPI.mostrarMensagem('Especialidade atualizada com sucesso', 'success');
-    } catch (error) {
-        console.error('Erro ao alterar especialidade do usuário:', error);
-        suporteAPI.mostrarMensagem('Erro ao alterar especialidade', 'error');
-    }
+    
 }
 
 async function criarEspecialidade(dadosEspec) {
-    try {
+
         console.log('🔧 Admin criou nova especialidade:', dadosEspec.name);
         await suporteAPI.chamarAPI('/Spec', 'POST', dadosEspec);
         await carregarEspecialidades();
         suporteAPI.mostrarMensagem('Especialidade criada com sucesso', 'success');
-    } catch (error) {
-        console.error('Erro ao criar especialidade:', error);
-        suporteAPI.mostrarMensagem('Erro ao criar especialidade', 'error');
-    }
 }
 
 async function excluirEspecialidade(specId) {
     if (!confirm('Tem certeza que deseja excluir esta especialidade?')) {
         return;
     }
-
-    try {
         console.log('🗑️ Admin excluiu especialidade:', specId);
+    
         await suporteAPI.chamarAPI(`/Spec/${specId}`, 'DELETE');
         await carregarEspecialidades();
         await carregarRegistrosTecnicos();
         await carregarUsuarios();
         suporteAPI.mostrarMensagem('Especialidade excluída com sucesso', 'success');
-    } catch (error) {
-        console.error('Erro ao excluir especialidade:', error);
-        suporteAPI.mostrarMensagem('Erro ao excluir especialidade', 'error');
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -317,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const formNovaSpec = document.getElementById('new-spec-form');
-    if (formNovaSpec) {
+    if (formNovaSpec) 
         formNovaSpec.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -331,5 +299,4 @@ document.addEventListener('DOMContentLoaded', () => {
             
             formNovaSpec.reset();
         });
-    }
 });
