@@ -61,6 +61,7 @@ function finalizarInicializacao() {
     configurarEntradaChat();
     atualizarEstadoChat();
     carregarTickets();
+    carregarEspecialidades();
 }
 
 async function carregarTickets() {
@@ -70,6 +71,28 @@ async function carregarTickets() {
     } catch (error) {
         console.error('❌ Erro ao carregar tickets:', error);
         suporteAPI.mostrarMensagem('Erro ao carregar tickets', 'error');
+    }
+}
+
+async function carregarEspecialidades() {
+    try {
+        const especialidades = await suporteAPI.chamarAPI('/Spec');
+        const selectEspec = document.getElementById('ticket-spec-select');
+        
+        if (selectEspec && especialidades && Array.isArray(especialidades)) {
+            // Limpar opções existentes exceto a primeira
+            selectEspec.innerHTML = '<option value="">Selecione uma especialidade...</option>';
+            
+            especialidades.forEach(spec => {
+                const option = document.createElement('option');
+                option.value = spec.id;
+                option.textContent = spec.name;
+                selectEspec.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('❌ Erro ao carregar especialidades:', error);
+        suporteAPI.mostrarMensagem('Erro ao carregar especialidades', 'error');
     }
 }
 
@@ -145,14 +168,14 @@ function renderizarMensagensChat() {
         if (mensagem.text) {
             const elementoMensagem = document.createElement('div');
             
-            // Determinar a classe baseada no authorName
-            let classeMsg = 'message user'; // padrão para usuário
+            let classeMsg = 'message user'; 
             if (mensagem.authorName === 'SuporteBot') {
                 classeMsg = 'message suporte-bot';
             }
             
             elementoMensagem.className = classeMsg;
             elementoMensagem.innerHTML = `
+                <div class="message-author">${mensagem.authorName}</div>
                 <div>${mensagem.text}</div>
                 <div class="message-time">${suporteAPI.formatarData(mensagem.time)}</div>
             `;
@@ -287,9 +310,7 @@ function verificarChatAberto() {
         return false;
     }
     
-    const chatAberto = ticketSelecionado.tecUserId && ticketSelecionado.tecUserId > 0;
-    
-
+    const chatAberto = ticketSelecionado.status === 'Aberto';
     
     return chatAberto;
 }
@@ -318,7 +339,7 @@ function atualizarEstadoChat() {
     } else {
         if (entradaChat) {
             entradaChat.disabled = true;
-            entradaChat.placeholder = 'Solicite escalação para um técnico para habilitar o chat';
+            entradaChat.placeholder = 'chat com agente encerrado';
         }
         if (botaoEnviar) botaoEnviar.disabled = true;
         if (cabecalhoChat) cabecalhoChat.textContent = `${ticketSelecionado.title} - ⚠️ Chat indisponível`;
@@ -407,6 +428,7 @@ async function criarTicket(dadosTicket) {
             title: dadosTicket.title,
             description: dadosTicket.description,
             userId: dadosTicket.userId,
+            specId: dadosTicket.specId,
             status: dadosTicket.status || 'Aberto',
         };
         
@@ -430,11 +452,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const titulo = document.getElementById('ticket-title-input').value;
             const descricao = document.getElementById('ticket-description-input').value;
+            const especialidadeId = document.getElementById('ticket-spec-select').value;
+            
+            // Validação obrigatória da especialidade
+            if (!especialidadeId) {
+                suporteAPI.mostrarMensagem('É obrigatório selecionar uma especialidade', 'error');
+                return;
+            }
+            
+            console.log('➕ Usuário criou novo ticket com especialidade:', especialidadeId);
             
             const dadosTicket = {
                 title: titulo,
                 description: descricao,
                 userId: usuarioAtual.id,
+                specId: parseInt(especialidadeId),
                 status: 'Aberto',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -445,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('ticket-title-input').value = '';
             document.getElementById('ticket-description-input').value = '';
+            document.getElementById('ticket-spec-select').value = '';
         });
     }
 });
