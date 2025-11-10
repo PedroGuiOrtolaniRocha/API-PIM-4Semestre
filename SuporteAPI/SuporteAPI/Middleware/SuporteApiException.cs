@@ -15,6 +15,8 @@ public class SuporteApiException : Exception
         {
             throw new SuporteApiException(ex.Message);
         }
+
+        Console.WriteLine(ex.Message);
         throw new SuporteApiException("Ocorreu um erro inesperado no servidor.");
     }
     

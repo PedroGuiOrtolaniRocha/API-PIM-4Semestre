@@ -5,9 +5,9 @@ namespace SuporteAPI.DTO;
 public class UserDto
 {
     public int Id { get; set; }
-    public string Username { get; }
-    public string Email { get; }
-    public string Role { get; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string Role { get; set; }
 
     public UserDto(User user)
     {
@@ -17,6 +17,10 @@ public class UserDto
         Id = user.Id;
     }
 
+    public UserDto()
+    {
+    }
+    
     public static List<UserDto> ToDto(List<User> users)
     {
         return users.Select(user => new UserDto(user)).ToList();

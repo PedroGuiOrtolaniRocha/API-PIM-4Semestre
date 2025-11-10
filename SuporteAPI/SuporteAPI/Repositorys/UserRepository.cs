@@ -37,9 +37,14 @@ public class UserRepository : IUserRepository
     
     public async Task<User?> UpdateUser(User user)
     {
-        if (_context.Users.Any(u => u.Id == user.Id))
+        User? toUpdate = await _context.Users.FindAsync(user.Id);
+        if (toUpdate != null)
         {
-            var resp = _context.Users.Update(user);
+            toUpdate.Email = user.Email;
+            toUpdate.Username = user.Username;
+            toUpdate.Role = user.Role;
+            
+            var resp = _context.Users.Update(toUpdate);
             await _context.SaveChangesAsync();
             return resp.Entity;
         }

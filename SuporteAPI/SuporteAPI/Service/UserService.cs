@@ -44,11 +44,14 @@ public class UserService : IUserService
     public async Task<UserDto?> UpdateUser(User user)
     {
         User? oldUser = await _userRepository.GetUserById(user.Id);
-        VerifyValidity(user);
         
-        if (! await _userRepository.UniqueEmail(user.Email, user.Id))
+        if (user.Email != oldUser.Email)
         {
-            throw new SuporteApiException("Email já cadastrado");
+            if (! await _userRepository.UniqueEmail(user.Email, user.Id))
+            {
+                throw new SuporteApiException("Email já cadastrado");
+                
+            }
         }
         
         if (user.PasswordHash == null || user.PasswordHash == "")

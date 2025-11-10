@@ -153,7 +153,8 @@ async function criarUsuario(dadosUsuario) {
 }
 
 async function atualizarUsuario(dadosUsuario) {
-
+        
+        console.log(dadosUsuario);
         await suporteAPI.chamarAPI('/User', 'PATCH', dadosUsuario);
         console.log('✅ Usuário atualizado com sucesso');
         await carregarUsuarios();
@@ -274,12 +275,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const userId = document.getElementById('edit-user-id').value;
             const dadosUsuario = {
-                username: document.getElementById('edit-user-username').value,
-                email: document.getElementById('edit-user-email').value,
-                role: document.getElementById('edit-user-role').value
+                Id: userId,
+                Username: document.getElementById('edit-user-username').value,
+                Email: document.getElementById('edit-user-email').value,
+                Role: document.getElementById('edit-user-role').value
             };
             
-            atualizarUsuario(userId, dadosUsuario);
+            atualizarUsuario(dadosUsuario);
             suporteAPI.fecharModal('edit-user-modal');
         });
     }
