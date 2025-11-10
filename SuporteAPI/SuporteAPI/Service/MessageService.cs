@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SuporteAPI.DTO;
 using SuporteAPI.Interface;
 using SuporteAPI.Interface.Repository;
 using SuporteAPI.Interface.Service;
@@ -72,9 +73,30 @@ public class MessageService : IMessageService
         
     }
     
-    public async Task<List<Message>> GetMessagesByTicketId(int ticketId)
+    public async Task<List<MessageDto>> GetMessagesByTicketId(int ticketId)
     {
-        return await _messageRepository.GetMessagesByTicketId(ticketId);
+        List<MessageDto> messages = new List<MessageDto>();
+        var tickets =  await _messageRepository.GetMessagesByTicketId(ticketId);
+        
+        foreach (var ticket in tickets)
+        {
+            messages.Add(new MessageDto()
+            {
+                Time = ticket.Time,
+                Text = ticket.UserText,
+                TiketId = ticket.TicketId,
+                AuthorName = (await _userRepository.GetUserById(ticket.UserId)).Username
+            });
+            
+            messages.Add(new MessageDto()
+            {
+                Time = ticket.Time,
+                Text = ticket.BotText,
+                TiketId = ticket.TicketId,
+                AuthorName = "SuporteBot"
+            });
+        }
+        return messages;
     }
     
 }

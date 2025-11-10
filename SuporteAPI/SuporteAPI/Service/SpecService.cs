@@ -54,4 +54,9 @@ public class SpecService : ISpecService
     {
         return await _specRepository.UpdateSpec(spec);
     }
+    
+    public async Task<bool> DeleteSpec(int id)
+    {
+        return await _specRepository.DeleteSpec(id);
+    }
 }

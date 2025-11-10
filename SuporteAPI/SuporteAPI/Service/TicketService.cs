@@ -222,6 +222,7 @@ public class TicketService : ITicketService
         }
 
         ticket.TecUserId = tec.Id;
+        ticket.Status = nameof(TicketStatus.Escalado);
         var resp = await _ticketRepository.UpdateTicket(ticket);
         
         if (resp == null)

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SuporteAPI.Interface.Repository;
 using SuporteAPI.Models;
+using SuporteAPI.Utils;
 
 namespace SuporteAPI.Repositorys;
 
@@ -13,6 +14,28 @@ public class SpecRepository : ISpecRepository
         _context = context;
     }
     
+    public async Task<bool> DeleteSpec(int id)
+    {
+        
+        var spec = await _context.Specs.FindAsync(id);
+        if (spec == null)
+        {
+            return false;
+        }
+        
+        var hasRelatedRecords = await _context.TecRegisters
+            .AnyAsync(tr => tr.SpecId == id);
+    
+        if (hasRelatedRecords)
+        {
+            throw new SuporteApiException(
+                "Não é possível deletar esta especialidade pois existem tecnicos relacionados.");
+        }
+        _context.Specs.Remove(spec);
+        await _context.SaveChangesAsync();
+        
+        return true;
+    }
     
     public async Task<List<Spec>> GetAllSpecs()
     {

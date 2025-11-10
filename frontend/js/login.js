@@ -1,18 +1,14 @@
-// Arquivo dedicado para lógica de login
 console.log('Arquivo login.js carregado com sucesso');
 
-// Preencher campos de login (para contas demo)
 function fillLogin(email, password) {
     document.getElementById('email').value = email;
     document.getElementById('password').value = password;
 }
 
-// Função de login com validação via API
 async function login(email, password) {
     console.log('Tentativa de login para:', email);
     
     try {
-        // Fazer chamada para API de validação
         console.log('Enviando credenciais para validação...');
         
         const credenciais = {
@@ -38,25 +34,21 @@ async function login(email, password) {
         if (resultado.token) {
             console.log('Login bem-sucedido para:', email);
             
-            // Extrair dados do usuário da resposta
             const dadosUsuario = {
                 email: email,
                 role: resultado.user?.role || resultado.role || resultado.userRole,
                 id: resultado.user?.id || resultado.userId || resultado.id
             };
 
-            // Armazenar token e dados do usuário nos cookies e localStorage
             setCookie('authToken', resultado.token, 7);
             setCookie('usuarioAtual', JSON.stringify(dadosUsuario), 7);
             
-            // Manter localStorage como fallback
             localStorage.setItem('authToken', resultado.token);
             localStorage.setItem('usuarioAtual', JSON.stringify(dadosUsuario));
 
             console.log('Token e dados do usuário armazenados nos cookies e localStorage');
             console.log('Usuário logado:', dadosUsuario);
             
-            // Redirecionar baseado no role
             const mapaPaginas = {
                 'User': 'colaborador.html',
                 'Technician': 'tecnico.html', 
@@ -67,12 +59,10 @@ async function login(email, password) {
             if (paginaDestino) {
                 console.log('Redirecionando para:', paginaDestino);
                 
-                // Forçar persistência do localStorage
                 try {
                     localStorage.setItem('authToken', resultado.token);
                     localStorage.setItem('usuarioAtual', JSON.stringify(dadosUsuario));
                     
-                    // Verificar se realmente foi salvo
                     const tokenVerificacao = localStorage.getItem('authToken');
                     const usuarioVerificacao = localStorage.getItem('usuarioAtual');
                     
@@ -86,7 +76,6 @@ async function login(email, password) {
                         return;
                     }
                     
-                    // Adicionar flag para evitar loop
                     sessionStorage.setItem('loginRedirect', 'true');
                     
                     console.log('🔄 Executando redirecionamento...');
@@ -112,11 +101,9 @@ async function login(email, password) {
     }
 }
 
-// Configurar eventos quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     console.log('=== INICIALIZANDO PÁGINA DE LOGIN ===');
     
-    // Configurar evento de submit do formulário
     const formularioLogin = document.getElementById('login-form');
     if (formularioLogin) {
         formularioLogin.addEventListener('submit', function(e) {
@@ -129,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // REMOVIDO: Redirecionamento automático para evitar loops
     console.log('✅ Página de login carregada - aguardando ação do usuário');
     
     const token = localStorage.getItem('authToken');

@@ -9,4 +9,5 @@ public interface ISpecRepository
     public Task<Spec?> GetSpecByName(string name);
     public Task<Spec?> CreateSpec(Spec spec);
     public Task<Spec?> UpdateSpec(Spec spec);
+    public Task<bool> DeleteSpec(int id);
 }
