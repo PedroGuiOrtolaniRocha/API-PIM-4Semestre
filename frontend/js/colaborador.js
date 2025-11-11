@@ -1,76 +1,32 @@
-let usuarioAtual = null;
-let ticketSelecionado = null;
-let tickets = [];
-let mensagens = [];
+let usuarioAtual = null, ticketSelecionado = null, tickets = [], mensagens = [];
+let especialidadesDisponiveis = [], especialidadesSelecionadas = [], especialidadesModalSelecionadas = [];
 
 function inicializarPagina() {
     setTimeout(() => {
-        if (typeof suporteAPI === 'undefined') {
-            setTimeout(inicializarPagina, 500);
-            return;
-        }
+        if (typeof suporteAPI === 'undefined') return setTimeout(inicializarPagina, 500);
         
-        continuarInicializacao();
-    }, 500);
-}
-
-function continuarInicializacao() {
-    let usuarioStorage = getCookie('usuarioAtual');
-    if (!usuarioStorage) {
-        usuarioStorage = localStorage.getItem('usuarioAtual');
-    }
-    
-    if (usuarioStorage) {
+        const usuarioStorage = getCookie('usuarioAtual') || localStorage.getItem('usuarioAtual');
         try {
-            const dadosUsuario = JSON.parse(usuarioStorage);
-            usuarioAtual = {
-                id: dadosUsuario.id || 1,
-                username: dadosUsuario.email,
-                role: dadosUsuario.role || 'User'
-            };
-            console.log('👤 Colaborador logado:', usuarioAtual.username);
-        } catch (error) {
-            usuarioAtual = {
-                id: 1,
-                username: 'Usuário Demo',
-                role: 'User'
-            };
+            const dados = JSON.parse(usuarioStorage);
+            usuarioAtual = { id: dados.id || 1, username: dados.email, role: dados.role || 'User' };
+        } catch {
+            usuarioAtual = { id: 1, username: 'Usuário Demo', role: 'User' };
         }
-    } else {
-        usuarioAtual = {
-            id: 1,
-            username: 'Usuário Demo (Não Logado)',
-            role: 'User'
-        };
-    }
-    
-    finalizarInicializacao();
-}
-
-function finalizarInicializacao() {
-    const infoUsuario = document.querySelector('.user-info span');
-    if (infoUsuario) {
-        infoUsuario.textContent = usuarioAtual.username;
         
-        if (usuarioAtual.username.includes('Demo')) {
-            infoUsuario.style.color = '#ff6b6b';
-            infoUsuario.title = 'Usuário demo - dados não salvos no servidor';
+        const infoUsuario = document.querySelector('.user-info span');
+        if (infoUsuario) {
+            infoUsuario.textContent = usuarioAtual.username;
+            if (usuarioAtual.username.includes('Demo')) {
+                infoUsuario.style.color = '#ff6b6b';
+                infoUsuario.title = 'Usuário demo - dados não salvos no servidor';
+            }
         }
-    }
-    
-    configurarEntradaChat();
-    atualizarEstadoChat();
-    carregarTickets();
-    carregarEspecialidades();
-    
-    // Configurar event listeners para modais
-    setTimeout(() => {
-        const btnConfirmar = document.getElementById('confirm-add-specs');
-        if (btnConfirmar) {
-            btnConfirmar.onclick = confirmarAdicionarEspecialidades;
-            console.log('✅ Event listener do botão confirmar configurado');
-        }
-    }, 1000);
+        
+        configurarEntradaChat();
+        atualizarEstadoChat();
+        carregarTickets();
+        carregarEspecialidades();
+    }, 500);
 }
 
 async function carregarTickets() {
@@ -83,14 +39,9 @@ async function carregarTickets() {
     }
 }
 
-let especialidadesDisponiveis = [];
-let especialidadesSelecionadas = []; // Para novo ticket
-let especialidadesModalSelecionadas = []; // Para adicionar a ticket existente
-
 async function carregarEspecialidades() {
     try {
         const especialidades = await suporteAPI.chamarAPI('/Spec');
-        
         if (especialidades && Array.isArray(especialidades)) {
             especialidadesDisponiveis = especialidades;
             renderizarEspecialidadesDisponiveis('novo-ticket');
@@ -101,104 +52,79 @@ async function carregarEspecialidades() {
     }
 }
 
-// Função genérica para renderizar especialidades disponíveis
 function renderizarEspecialidadesDisponiveis(contexto = 'novo-ticket') {
     const containerId = contexto === 'novo-ticket' ? 'available-specs-list' : 'modal-available-specs-list';
     const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
+    const container = document.getElementById(containerId);
+    if (!container) return;
     
-    const containerDisponiveis = document.getElementById(containerId);
-    if (!containerDisponiveis) return;
+    const disponiveis = especialidadesDisponiveis.filter(spec => !especialidadesSel.some(sel => sel.id === spec.id));
     
-    containerDisponiveis.innerHTML = '';
-    
-    const disponiveisParaMostrar = especialidadesDisponiveis.filter(spec => 
-        !especialidadesSel.some(sel => sel.id === spec.id)
-    );
-    
-    if (disponiveisParaMostrar.length === 0) {
-        containerDisponiveis.innerHTML = '<em style="color: #666;">Todas as especialidades foram selecionadas</em>';
+    if (disponiveis.length === 0) {
+        container.innerHTML = '<em style="color: #666;">Todas as especialidades foram selecionadas</em>';
         return;
     }
     
-    disponiveisParaMostrar.forEach(spec => {
-        const specElement = document.createElement('span');
-        specElement.className = 'spec-item available';
-        specElement.textContent = spec.name;
-        specElement.onclick = () => selecionarEspecialidade(spec, contexto);
-        containerDisponiveis.appendChild(specElement);
+    container.innerHTML = '';
+    disponiveis.forEach(spec => {
+        const el = document.createElement('span');
+        el.className = 'spec-item available';
+        el.textContent = spec.name;
+        el.onclick = () => selecionarEspecialidade(spec, contexto);
+        container.appendChild(el);
     });
 }
 
-// Função genérica para renderizar especialidades selecionadas
 function renderizarEspecialidadesSelecionadas(contexto = 'novo-ticket') {
     const containerId = contexto === 'novo-ticket' ? 'selected-specs-list' : 'modal-selected-specs-list';
     const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
-    
-    const containerSelecionadas = document.getElementById(containerId);
-    if (!containerSelecionadas) return;
-    
-    containerSelecionadas.innerHTML = '';
+    const container = document.getElementById(containerId);
+    if (!container) return;
     
     if (especialidadesSel.length === 0) {
-        containerSelecionadas.innerHTML = '<em style="color: #666;">Nenhuma especialidade selecionada</em>';
+        container.innerHTML = '<em style="color: #666;">Nenhuma especialidade selecionada</em>';
     } else {
+        container.innerHTML = '';
         especialidadesSel.forEach(spec => {
-            const specElement = document.createElement('span');
-            specElement.className = 'spec-item selected';
-            specElement.textContent = spec.name;
-            specElement.onclick = () => removerEspecialidade(spec, contexto);
-            containerSelecionadas.appendChild(specElement);
+            const el = document.createElement('span');
+            el.className = 'spec-item selected';
+            el.textContent = spec.name;
+            el.onclick = () => removerEspecialidade(spec, contexto);
+            container.appendChild(el);
         });
     }
-    
     atualizarValidacaoEspecialidades(contexto);
 }
 
-// Função genérica para selecionar especialidade
 function selecionarEspecialidade(spec, contexto = 'novo-ticket') {
     const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
-    
     if (!especialidadesSel.some(sel => sel.id === spec.id)) {
-        if (contexto === 'novo-ticket') {
-            especialidadesSelecionadas.push(spec);
-        } else {
-            especialidadesModalSelecionadas.push(spec);
-        }
-        
+        (contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas).push(spec);
         renderizarEspecialidadesDisponiveis(contexto);
         renderizarEspecialidadesSelecionadas(contexto);
-        console.log('✅ Especialidade selecionada:', spec.name);
     }
 }
 
-// Função genérica para remover especialidade
 function removerEspecialidade(spec, contexto = 'novo-ticket') {
     if (contexto === 'novo-ticket') {
         especialidadesSelecionadas = especialidadesSelecionadas.filter(sel => sel.id !== spec.id);
     } else {
         especialidadesModalSelecionadas = especialidadesModalSelecionadas.filter(sel => sel.id !== spec.id);
     }
-    
     renderizarEspecialidadesDisponiveis(contexto);
     renderizarEspecialidadesSelecionadas(contexto);
-    console.log('❌ Especialidade removida:', spec.name);
 }
 
-// Função genérica para atualizar validação
 function atualizarValidacaoEspecialidades(contexto = 'novo-ticket') {
     const validationId = contexto === 'novo-ticket' ? '.validation-message' : '#modal-validation-message';
     const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
-    
     const validationMessage = document.querySelector(validationId);
     if (!validationMessage) return;
     
-    if (especialidadesSel.length === 0) {
-        validationMessage.textContent = contexto === 'novo-ticket' ? 'Selecione pelo menos uma especialidade' : 'Selecione as especialidades para adicionar';
-        validationMessage.className = contexto === 'novo-ticket' ? 'validation-message' : 'validation-message';
-    } else {
-        validationMessage.textContent = `${especialidadesSel.length} especialidade(s) selecionada(s)`;
-        validationMessage.className = contexto === 'novo-ticket' ? 'validation-message valid' : 'validation-message valid';
-    }
+    validationMessage.textContent = especialidadesSel.length === 0 
+        ? (contexto === 'novo-ticket' ? 'Selecione pelo menos uma especialidade' : 'Selecione as especialidades para adicionar')
+        : `${especialidadesSel.length} especialidade(s) selecionada(s)`;
+    validationMessage.className = especialidadesSel.length > 0 ? 'validation-message valid' : 'validation-message';
 }
 
 function limparSelecaoEspecialidades(contexto = 'novo-ticket') {
@@ -213,15 +139,8 @@ function limparSelecaoEspecialidades(contexto = 'novo-ticket') {
 
 async function carregarMensagens(ticketId) {
     try {
-        
         const resultado = await suporteAPI.chamarAPI(`/Message/${ticketId}`, 'GET');
-        
-        if (resultado && Array.isArray(resultado)) {
-            mensagens = resultado;
-        } else {
-            mensagens = [];
-        }
-        
+        mensagens = (resultado && Array.isArray(resultado)) ? resultado : [];
         renderizarMensagensChat();
     } catch (error) {
         console.error('❌ Erro ao carregar mensagens:', error);
@@ -258,24 +177,11 @@ function renderizarListaTickets() {
 }
 
 async function selecionarTicket(ticket) {
-    console.log('🎫 Usuário selecionou ticket:', ticket.title);
     ticketSelecionado = ticket;
-    
-    document.querySelectorAll('.list-item').forEach(item => {
-        item.classList.remove('active');
-    });
+    document.querySelectorAll('.list-item').forEach(item => item.classList.remove('active'));
     event.currentTarget.classList.add('active');
-    
     carregarMensagens(ticket.id);
-    
     await atualizarDetalhesTicket(ticket);
-    
-    // Forçar carregamento das especialidades após um pequeno delay
-    setTimeout(() => {
-        console.log('🔄 Recarregando especialidades do ticket:', ticket.id);
-        carregarEspecialidadesDoTicket(ticket.id);
-    }, 500);
-    
     atualizarEstadoChat();
 }
 
@@ -284,26 +190,18 @@ function renderizarMensagensChat() {
     if (!chatMensagens) return;
     
     chatMensagens.innerHTML = '';
-    
-    mensagens.forEach(mensagem => {
-        if (mensagem.text) {
-            const elementoMensagem = document.createElement('div');
-            
-            let classeMsg = 'message user'; 
-            if (mensagem.authorName === 'SuporteBot') {
-                classeMsg = 'message suporte-bot';
-            }
-            
-            elementoMensagem.className = classeMsg;
-            elementoMensagem.innerHTML = `
-                <div class="message-author">${mensagem.authorName}</div>
-                <div>${mensagem.text}</div>
-                <div class="message-time">${suporteAPI.formatarData(mensagem.time)}</div>
+    mensagens.forEach(msg => {
+        if (msg.text) {
+            const el = document.createElement('div');
+            el.className = msg.authorName === 'SuporteBot' ? 'message suporte-bot' : 'message user';
+            el.innerHTML = `
+                <div class="message-author">${msg.authorName}</div>
+                <div>${msg.text}</div>
+                <div class="message-time">${suporteAPI.formatarData(msg.time)}</div>
             `;
-            chatMensagens.appendChild(elementoMensagem);
+            chatMensagens.appendChild(el);
         }
     });
-    
     chatMensagens.scrollTop = chatMensagens.scrollHeight;
 }
 
@@ -330,23 +228,16 @@ async function atualizarDetalhesTicket(ticket) {
 async function carregarInformacoesTecnico(ticket) {
     const elemTechName = document.getElementById('tech-name');
     const elemTechSpec = document.getElementById('tech-spec');
-    
     if (!elemTechName || !elemTechSpec) return;
     
     elemTechName.textContent = 'Não atribuído';
     elemTechSpec.textContent = '-';
-    
-    if (!ticket.tecUserId) {
-        return;
-    }
+    if (!ticket.tecUserId) return;
     
     try {
-        
         const tecnico = await suporteAPI.chamarAPI(`/User/${ticket.tecUserId}`, 'GET');
-        
         if (tecnico) {
             elemTechName.textContent = tecnico.email || 'Nome não disponível';
-            
             await carregarEspecialidadesTecnico(ticket.tecUserId, elemTechSpec);
         } else {
             elemTechName.textContent = 'Técnico não encontrado';
@@ -360,20 +251,12 @@ async function carregarInformacoesTecnico(ticket) {
 
 async function carregarEspecialidadesTecnico(tecnicoId, elemTechSpec) {
     try {
-        
         const registros = await suporteAPI.chamarAPI('/TecRegister', 'GET');
-        
         if (registros && Array.isArray(registros)) {
             const registroTecnico = registros.find(reg => reg.userId === tecnicoId);
-            
             if (registroTecnico && registroTecnico.specId) {
                 const especialidade = await suporteAPI.chamarAPI(`/Spec/${registroTecnico.specId}`, 'GET');
-                
-                if (especialidade && especialidade.name) {
-                    elemTechSpec.textContent = especialidade.name;
-                } else {
-                    elemTechSpec.textContent = 'Especialidade não encontrada';
-                }
+                elemTechSpec.textContent = (especialidade && especialidade.name) ? especialidade.name : 'Especialidade não encontrada';
             } else {
                 elemTechSpec.textContent = 'Sem especialidade registrada';
             }
@@ -393,46 +276,22 @@ function configurarEntradaChat() {
     if (entradaChat && botaoEnviar) {
         const enviarMensagem = async () => {
             const texto = entradaChat.value.trim();
-            
-            if (!texto) {
-                suporteAPI.mostrarMensagem('Digite uma mensagem antes de enviar', 'warning');
-                return;
-            }
-            
-            if (!ticketSelecionado) {
-                suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
-                return;
-            }
-            
-            if (!usuarioAtual) {
-                suporteAPI.mostrarMensagem('Usuário não identificado', 'error');
-                return;
-            }
-            
-            if (!verificarChatAberto()) {
-                suporteAPI.mostrarMensagem('Chat não disponível. Solicite escalação para um técnico primeiro.', 'warning');
-                return;
-            }
+            if (!texto) return suporteAPI.mostrarMensagem('Digite uma mensagem antes de enviar', 'warning');
+            if (!ticketSelecionado) return suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
+            if (!usuarioAtual) return suporteAPI.mostrarMensagem('Usuário não identificado', 'error');
+            if (!verificarChatAberto()) return suporteAPI.mostrarMensagem('Chat não disponível. Solicite escalação para um técnico primeiro.', 'warning');
             
             await enviarMensagemChat(ticketSelecionado.id, texto, usuarioAtual.username);
             entradaChat.value = '';
         };
         
         botaoEnviar.onclick = enviarMensagem;
-        entradaChat.onkeypress = (e) => {
-            if (e.key === 'Enter') {
-                enviarMensagem();
-            }
-        };
+        entradaChat.onkeypress = (e) => { if (e.key === 'Enter') enviarMensagem(); };
     }
 }
 
 function verificarChatAberto() {
-    if (!ticketSelecionado) {
-        return false;
-    }
-    
-    return ticketSelecionado.status === 'Aberto';
+    return ticketSelecionado && ticketSelecionado.status === 'Aberto';
 }
 
 function atualizarEstadoChat() {
@@ -468,49 +327,43 @@ function atualizarEstadoChat() {
 
 async function enviarMensagemChat(ticketId, textoUsuario, authorName) {
     try {
-        console.log('� Usuário enviou mensagem para ticket:', ticketId);
-        
-        const dadosMensagem = {
+        const novaMensagem = {
             TicketId: ticketId,
             Text: textoUsuario,
             AuthorName: authorName,
             Time: new Date().toISOString()
         };
         
-        await suporteAPI.chamarAPI('/Message', 'POST', dadosMensagem);
-        console.log('✅ Mensagem enviada com sucesso');
+        mensagens.push({ text: novaMensagem.Text, authorName: novaMensagem.AuthorName, time: novaMensagem.Time });
+        renderizarMensagensChat();
+        
+        await suporteAPI.chamarAPI('/Message', 'POST', novaMensagem);
+        
         await carregarMensagens(ticketId);
+
+        renderizarMensagensChat();
         suporteAPI.mostrarMensagem('Mensagem enviada com sucesso', 'success');
     } catch (error) {
         console.error('❌ Erro ao enviar mensagem:', error);
+        mensagens.pop();
+        renderizarMensagensChat();
         suporteAPI.mostrarMensagem('Erro ao enviar mensagem', 'error');
     }
 }
 
 async function pedirEscalacao() {
-    if (!ticketSelecionado) {
-        suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
-        return;
-    }
+    if (!ticketSelecionado) return suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
     
     try {
-        console.log('� Usuário solicitou escalação para ticket:', ticketSelecionado.id);
-        
         await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/routeTicket`, 'PATCH');
-        
-        console.log('✅ Ticket escalado com sucesso');
-        
         await carregarTickets();
         
-        if (ticketSelecionado) {
-            const ticketsAtualizados = await suporteAPI.chamarAPI('/Ticket', 'GET');
-            const ticketAtualizado = ticketsAtualizados.find(t => t.id === ticketSelecionado.id);
-            if (ticketAtualizado) {
-                await atualizarDetalhesTicket(ticketAtualizado);
-                ticketSelecionado = ticketAtualizado;
-                
-                atualizarEstadoChat();
-            }
+        const ticketsAtualizados = await suporteAPI.chamarAPI('/Ticket', 'GET');
+        const ticketAtualizado = ticketsAtualizados.find(t => t.id === ticketSelecionado.id);
+        if (ticketAtualizado) {
+            await atualizarDetalhesTicket(ticketAtualizado);
+            ticketSelecionado = ticketAtualizado;
+            atualizarEstadoChat();
         }
         
         suporteAPI.mostrarMensagem('Ticket escalado para técnico disponível', 'success');
@@ -521,16 +374,11 @@ async function pedirEscalacao() {
 }
 
 async function encerrarTicket() {
-    if (!ticketSelecionado) {
-        suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
-        return;
-    }
+    if (!ticketSelecionado) return suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
     
     if (confirm('Tem certeza que deseja encerrar este ticket?')) {
         try {
-            console.log('� Usuário encerrou ticket:', ticketSelecionado.id);
             await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/finish`, 'PATCH');
-            console.log('✅ Ticket finalizado com sucesso');
             await carregarTickets();
             suporteAPI.mostrarMensagem('Ticket encerrado com sucesso', 'success');
         } catch (error) {
@@ -542,27 +390,18 @@ async function encerrarTicket() {
 
 async function criarTicket(dadosTicket) {
     try {
-        console.log('➕ Usuário criou novo ticket:', dadosTicket.title);
-        
-        const ticketDto = {
+        const ticketCriado = await suporteAPI.chamarAPI('/Ticket', 'POST', {
             title: dadosTicket.title,
             description: dadosTicket.description,
-            specIds: dadosTicket.specIds || [], // Array de IDs das especialidades
+            specIds: dadosTicket.specIds || [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
-        };
+        });
         
-        const ticketCriado = await suporteAPI.chamarAPI('/Ticket', 'POST', ticketDto);
-        console.log('✅ Ticket criado com sucesso:', ticketCriado);
-        
-        // Se o backend não suporta specIds diretamente, adicionar especialidades uma por uma
         if (dadosTicket.specIds && dadosTicket.specIds.length > 0) {
-            console.log('🔗 Adicionando especialidades ao ticket...');
-            
             for (const specId of dadosTicket.specIds) {
                 try {
                     await suporteAPI.chamarAPI(`/Ticket/${ticketCriado.id}/addSpec`, 'PATCH', specId);
-                    console.log('✅ Especialidade adicionada:', specId);
                 } catch (error) {
                     console.warn('⚠️ Erro ao adicionar especialidade:', specId, error);
                 }
@@ -581,15 +420,12 @@ async function carregarEspecialidadesDoTicket(ticketId) {
     if (!ticketId) return;
     
     try {
-        // Tentar endpoint específico para especialidades do ticket
         let specs = await suporteAPI.chamarAPI(`/Ticket/${ticketId}/specs`);
         
-        // Se não funcionar, tentar buscar via relações TicketSpecRelation
         if (!specs || specs.length === 0) {
-            console.log('🔄 Tentando buscar especialidades via TicketSpecRelation...');
             const relacoes = await suporteAPI.chamarAPI('/TicketSpecRelation');
             const relacoesDoTicket = relacoes.filter(rel => rel.ticketId === ticketId);
-            
+            specs = [];
             for (const relacao of relacoesDoTicket) {
                 try {
                     const spec = await suporteAPI.chamarAPI(`/Spec/${relacao.specId}`);
@@ -609,63 +445,37 @@ async function carregarEspecialidadesDoTicket(ticketId) {
 
 function renderizarEspecialidadesDoTicket(specs) {
     const container = document.getElementById('ticket-specs-list');
-    if (!container) {
-        console.error('❌ Container ticket-specs-list não encontrado');
-        return;
-    }
+    if (!container) return console.error('❌ Container ticket-specs-list não encontrado');
     
-    console.log('🔍 Renderizando especialidades do ticket:', specs);
-    container.innerHTML = '';
-    
-    if (specs.length === 0) {
-        container.innerHTML = '<em style="color: #666;">Nenhuma especialidade associada</em>';
-        return;
-    }
+    container.innerHTML = specs.length === 0 
+        ? '<em style="color: #666;">Nenhuma especialidade associada</em>'
+        : '';
     
     specs.forEach(spec => {
-        const specElement = document.createElement('span');
-        specElement.className = 'spec-item selected';
-        specElement.textContent = spec.name || 'Especialidade sem nome';
-        specElement.onclick = () => confirmarRemocaoEspecialidade(spec);
-        specElement.title = 'Clique para remover';
-        container.appendChild(specElement);
-        console.log('✅ Especialidade renderizada:', spec.name);
+        const el = document.createElement('span');
+        el.className = 'spec-item selected';
+        el.textContent = spec.name || 'Especialidade sem nome';
+        el.onclick = () => confirmarRemocaoEspecialidade(spec);
+        el.title = 'Clique para remover';
+        container.appendChild(el);
     });
 }
 
 function abrirModalAdicionarEspecialidades() {
-    console.log('🔧 Abrindo modal de especialidades...');
-    
-    if (!ticketSelecionado) {
-        console.warn('⚠️ Nenhum ticket selecionado');
-        suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
-        return;
-    }
-    
-    console.log('📋 Ticket selecionado:', ticketSelecionado.title);
-    
-    // Limpar seleção anterior do modal
+    if (!ticketSelecionado) return suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
     especialidadesModalSelecionadas = [];
-    
-    // Carregar especialidades já no ticket e filtrar das disponíveis
     carregarEspecialidadesParaModal();
-    
     suporteAPI.openModal('manage-specs-modal');
-    console.log('✅ Modal aberto com sucesso');
 }
 
 async function carregarEspecialidadesParaModal() {
     try {
-        // Obter especialidades já no ticket
         let specsDoTicket = [];
-        
         try {
             specsDoTicket = await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/specs`) || [];
         } catch (error) {
-            console.log('🔄 Usando método alternativo para buscar especialidades do ticket...');
             const relacoes = await suporteAPI.chamarAPI('/TicketSpecRelation');
             const relacoesDoTicket = relacoes.filter(rel => rel.ticketId === parseInt(ticketSelecionado.id));
-            
             for (const relacao of relacoesDoTicket) {
                 try {
                     const spec = await suporteAPI.chamarAPI(`/Spec/${relacao.specId}`);
@@ -676,60 +486,36 @@ async function carregarEspecialidadesParaModal() {
             }
         }
         
-        // Filtrar especialidades disponíveis (remover as que já estão no ticket)
         const idsDoTicket = specsDoTicket.map(spec => spec.id);
-        const especialidadesDisponiveisParaAdicionar = especialidadesDisponiveis.filter(spec => 
-            !idsDoTicket.includes(spec.id)
-        );
-        
-        // Temporariamente substituir a lista global para renderização
+        const especialidadesDisponiveisParaAdicionar = especialidadesDisponiveis.filter(spec => !idsDoTicket.includes(spec.id));
         const especialidadesOriginais = [...especialidadesDisponiveis];
         especialidadesDisponiveis = especialidadesDisponiveisParaAdicionar;
-        
-        // Renderizar listas do modal
         renderizarEspecialidadesDisponiveis('modal');
         renderizarEspecialidadesSelecionadas('modal');
-        
-        // Restaurar lista original
         especialidadesDisponiveis = especialidadesOriginais;
         
         if (especialidadesDisponiveisParaAdicionar.length === 0) {
             const container = document.getElementById('modal-available-specs-list');
-            if (container) {
-                container.innerHTML = '<em style="color: #666;">Todas as especialidades já estão no ticket</em>';
-            }
+            if (container) container.innerHTML = '<em style="color: #666;">Todas as especialidades já estão no ticket</em>';
         }
-        
     } catch (error) {
         console.error('❌ Erro ao carregar especialidades para o modal:', error);
         const container = document.getElementById('modal-available-specs-list');
-        if (container) {
-            container.innerHTML = '<em style="color: #e74c3c;">Erro ao carregar especialidades</em>';
-        }
+        if (container) container.innerHTML = '<em style="color: #e74c3c;">Erro ao carregar especialidades</em>';
     }
 }
-
-
 async function confirmarAdicionarEspecialidades() {
     if (!ticketSelecionado || especialidadesModalSelecionadas.length === 0) {
-        suporteAPI.mostrarMensagem('Selecione pelo menos uma especialidade', 'error');
-        return;
+        return suporteAPI.mostrarMensagem('Selecione pelo menos uma especialidade', 'error');
     }
     
     try {
-        console.log('🔗 Adicionando especialidades ao ticket:', ticketSelecionado.id);
-        
         for (const spec of especialidadesModalSelecionadas) {
-            console.log(spec);
             await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/addSpec`, 'PATCH', spec.id);
-            console.log('✅ Especialidade adicionada:', spec.name);
         }
-        
         await carregarEspecialidadesDoTicket(ticketSelecionado.id);
         suporteAPI.mostrarMensagem(`${especialidadesModalSelecionadas.length} especialidade(s) adicionada(s)`, 'success');
         suporteAPI.closeModal('manage-specs-modal');
-        
-        // Limpar seleção do modal
         especialidadesModalSelecionadas = [];
     } catch (error) {
         console.error('❌ Erro ao adicionar especialidades:', error);
@@ -752,7 +538,6 @@ async function confirmarRemocaoEspecialidade(spec) {
     }
 }
 
-// Expor funções globalmente para o HTML
 window.abrirModalAdicionarEspecialidades = abrirModalAdicionarEspecialidades;
 window.confirmarAdicionarEspecialidades = confirmarAdicionarEspecialidades;
 
@@ -764,38 +549,21 @@ document.addEventListener('DOMContentLoaded', () => {
         formNovoTicket.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const titulo = document.getElementById('ticket-title-input').value;
-            const descricao = document.getElementById('ticket-description-input').value;
-            
-            // Validação das especialidades selecionadas
             if (especialidadesSelecionadas.length === 0) {
-                suporteAPI.mostrarMensagem('É obrigatório selecionar pelo menos uma especialidade', 'error');
-                return;
+                return suporteAPI.mostrarMensagem('É obrigatório selecionar pelo menos uma especialidade', 'error');
             }
             
-            const especIds = especialidadesSelecionadas.map(spec => spec.id);
-            
-            console.log('➕ Usuário criou novo ticket com especialidades:', especIds);
-            
-            const dadosTicket = {
-                title: titulo,
-                description: descricao,
-                specIds: especIds,
+            criarTicket({
+                title: document.getElementById('ticket-title-input').value,
+                description: document.getElementById('ticket-description-input').value,
+                specIds: especialidadesSelecionadas.map(spec => spec.id),
                 status: 'Aberto'
-            };
+            });
             
-            criarTicket(dadosTicket);
             suporteAPI.closeModal('new-ticket-modal');
-            
-            // Limpar formulário
             document.getElementById('ticket-title-input').value = '';
             document.getElementById('ticket-description-input').value = '';
             limparSelecaoEspecialidades('novo-ticket');
         });
     }
 });
-
-// Expor funções globalmente para acesso via HTML
-window.abrirModalAdicionarEspecialidades = abrirModalAdicionarEspecialidades;
-window.confirmarAdicionarEspecialidades = confirmarAdicionarEspecialidades;
-

@@ -63,6 +63,6 @@ public class MessageController : ControllerBase
         };
         
         MessageDto response = new MessageDto(updateMsg, await _messageService.GetAuthor(updateMsg));
-        return Ok(response.Text);
+        return Ok(response);
     }
 }
