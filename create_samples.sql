@@ -16,9 +16,9 @@ GO
 INSERT INTO TecRegister (SpecId, UserId) VALUES (1, 1);
 GO
 
--- Criar Ticket vinculado ao Spec, TecUserId = 1 (tecnico1), UserId = 2 (usuario2)
+-- Criar Ticket vinculado ao Spec, TecUserId = 0 (tecnico1), UserId = 1 (usuario2)
 INSERT INTO Ticket (UserId, TecUserId, Description, Resolution, Title, Status, CreatedAt)
-VALUES (2, NULL, 'Problema no ar condicionado', NULL, 'AC não liga', 'Aberto', GETDATE());
+VALUES (1, NULL, 'Problema no ar condicionado', NULL, 'AC não liga', 'Aberto', GETDATE());
 GO
 
 -- Relacionar Ticket ao Spec

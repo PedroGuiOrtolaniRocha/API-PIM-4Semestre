@@ -69,4 +69,9 @@ public class TicketRepository :  ITicketRepository
 
         return await specs.ToListAsync();
     }
+
+    public async Task<int> GetOpenTicketCountByTecId(int userId)
+    {
+        return await _context.Tickets.Where(x => x.Status == "Aerto" && x.TecUserId == userId).CountAsync();
+    }
 }

@@ -38,15 +38,6 @@ namespace SuporteAPI.Utils
             {
                 Tools =
                 [
-                    AIFunctionFactory.Create(async (string resolution) =>
-                        {
-                            Console.WriteLine($"Finalizando ticket {ticketId} com resolução: {resolution}");
-                            return await _ticketService.FinishTicket(ticketId, resolution);
-                        },
-                        "FinishTicket",
-                        """
-                        Só utilize esta função se o usuário confirmar explicitamente que o problema foi resolvido e está satisfeito com a solução. Pergunte ao usuário antes de chamar esta função e só execute após uma resposta afirmativa. Passe uma descrição detalhada contendo palavras-chave para facilitar futuras pesquisas.
-                        """)
                 ]
             };
 

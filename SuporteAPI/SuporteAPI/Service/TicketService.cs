@@ -105,7 +105,19 @@ public class TicketService : ITicketService
             throw new SuporteApiException("Ticket não possui especialidades", 400);
         }
         
-        User? user = await _userRepository.GetUserById(ticketId);
+        var tecRegisters = await _registerRepository.GetBySpecListId(specs.Select(x => x.SpecId).ToList());
+        
+        var userIds = tecRegisters.Select(x => x.UserId).Distinct().ToList();
+        Dictionary<int, int> userTicketCounts = new Dictionary<int, int>();
+        foreach (var userId in userIds)
+        {
+            int ticketCount = await _ticketRepository.GetOpenTicketCountByTecId(userId);
+            userTicketCounts.Add(userId, ticketCount);
+        }
+
+        int tecId = userTicketCounts.MinBy(x => x.Value).Key;
+        
+        User? user = await _userRepository.GetUserById(tecId);
         if (user == null)
         {
             throw new SuporteApiException("Não foi possível encontrar um técnico disponível", 404);

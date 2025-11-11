@@ -347,7 +347,6 @@ async function enviarMensagemChat(ticketId, textoUsuario, authorName) {
         console.error('❌ Erro ao enviar mensagem:', error);
         mensagens.pop();
         renderizarMensagensChat();
-        suporteAPI.mostrarMensagem('Erro ao enviar mensagem', 'error');
     }
 }
 
@@ -369,7 +368,6 @@ async function pedirEscalacao() {
         suporteAPI.mostrarMensagem('Ticket escalado para técnico disponível', 'success');
     } catch (error) {
         console.error('❌ Erro ao escalar ticket:', error);
-        suporteAPI.mostrarMensagem('Erro ao escalar ticket', 'error');
     }
 }
 
@@ -383,7 +381,6 @@ async function encerrarTicket() {
             suporteAPI.mostrarMensagem('Ticket encerrado com sucesso', 'success');
         } catch (error) {
             console.error('❌ Erro ao encerrar ticket:', error);
-            suporteAPI.mostrarMensagem('Erro ao encerrar ticket', 'error');
         }
     }
 }
@@ -401,7 +398,8 @@ async function criarTicket(dadosTicket) {
         if (dadosTicket.specIds && dadosTicket.specIds.length > 0) {
             for (const specId of dadosTicket.specIds) {
                 try {
-                    await suporteAPI.chamarAPI(`/Ticket/${ticketCriado.id}/addSpec`, 'PATCH', specId);
+                    console.log('Adicionando especialidade ao ticket:', specId);
+                    await suporteAPI.chamarAPI(`/Ticket/${ticketCriado.id}/addSpec`, 'PATCH', specId.toString());
                 } catch (error) {
                     console.warn('⚠️ Erro ao adicionar especialidade:', specId, error);
                 }
@@ -511,7 +509,7 @@ async function confirmarAdicionarEspecialidades() {
     
     try {
         for (const spec of especialidadesModalSelecionadas) {
-            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/addSpec`, 'PATCH', spec.id);
+            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/addSpec`, 'PATCH', spec.id.toString());
         }
         await carregarEspecialidadesDoTicket(ticketSelecionado.id);
         suporteAPI.mostrarMensagem(`${especialidadesModalSelecionadas.length} especialidade(s) adicionada(s)`, 'success');
@@ -528,7 +526,7 @@ async function confirmarRemocaoEspecialidade(spec) {
     
     if (confirm(`Tem certeza que deseja remover a especialidade "${spec.name}" deste ticket?`)) {
         try {
-            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/removeSpec`, 'PATCH', spec.id);
+            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/removeSpec`, 'PATCH', spec.id.toString());
             await carregarEspecialidadesDoTicket(ticketSelecionado.id);
             suporteAPI.mostrarMensagem('Especialidade removida com sucesso', 'success');
         } catch (error) {
