@@ -300,6 +300,16 @@ body {
     background-color: #c0392b;
 }
 
+/* Botão secundário para especialidades */
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
 /* Formulários */
 .form-group {
     margin-bottom: 1rem;
@@ -387,6 +397,104 @@ body {
     color: #333;
 }
 
+/* Estilos para Múltiplas Especialidades */
+.specs-selection-container {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    background-color: #f9f9f9;
+}
+
+.specs-available, .specs-selected {
+    margin-bottom: 1rem;
+}
+
+.specs-available h4, .specs-selected h4 {
+    color: #2c3e50;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.specs-list {
+    min-height: 80px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background-color: white;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.spec-item {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    margin: 0.2rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.spec-item:hover {
+    background-color: #2980b9;
+}
+
+.spec-item.available {
+    background-color: #95a5a6;
+}
+
+.spec-item.available:hover {
+    background-color: #7f8c8d;
+}
+
+.spec-item.selected {
+    background-color: #27ae60;
+}
+
+.spec-item.selected:hover {
+    background-color: #229954;
+}
+
+.specs-validation {
+    margin-top: 0.5rem;
+}
+
+.validation-message {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.validation-message.valid {
+    color: #27ae60;
+}
+
+/* Animações para as especialidades */
+.spec-item {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Estilos para drag and drop (futuro) */
+.specs-list.drag-over {
+    border-color: #3498db;
+    background-color: #ecf0f1;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     .main-content {
@@ -406,6 +514,15 @@ body {
     .modal-content {
         width: 90%;
         margin: 10% auto;
+    }
+
+    .specs-selection-container {
+        padding: 0.8rem;
+    }
+    
+    .spec-item {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
     }
 }
 
@@ -468,4 +585,15 @@ body {
 
 .demo-account strong {
     color: #3498db;
+}
+
+/* Modal específico para especialidades */
+.modal-body {
+    padding: 0;
+}
+
+.modal-actions {
+    text-align: right;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
 }

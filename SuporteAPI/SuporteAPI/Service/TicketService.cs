@@ -138,6 +138,8 @@ public class TicketService : ITicketService
             SpecId = specId
         };
         var resp = await _ticketSpecRelationRepository.AddRelation(relation);
+
+        Console.WriteLine(specId + " - " + ticketId);
         return resp != null;
     }
     

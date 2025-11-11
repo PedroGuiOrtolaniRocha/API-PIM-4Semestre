@@ -62,12 +62,11 @@ public class TicketRepository :  ITicketRepository
     }
     public async Task<List<Spec>> GetSpecsByTicketId(int ticketId)
     {
-        return await _context.TicketSpecRelations
-            .Where(rel => rel.TicketId == ticketId)
-            .Join(_context.Specs,
-                  rel => rel.SpecId,
-                  spec => spec.Id,
-                  (rel, spec) => spec)
-            .ToListAsync();
+        var specs = from tsr in _context.TicketSpecRelations
+                    join spec in _context.Specs on tsr.SpecId equals spec.Id
+                    where tsr.TicketId == ticketId
+                    select spec;
+
+        return await specs.ToListAsync();
     }
 }

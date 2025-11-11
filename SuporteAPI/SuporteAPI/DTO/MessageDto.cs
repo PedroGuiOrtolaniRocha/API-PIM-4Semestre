@@ -6,7 +6,7 @@ public class MessageDto
 {
     public DateTime Time { get; set; }
     public string Text { get; set; }
-    public int TiketId { get; set; }
+    public int TicketId { get; set; }
     public string AuthorName { get; set; }
 
     public MessageDto()
@@ -23,7 +23,7 @@ public class MessageDto
         {
             Text = message.UserText;
         }
-        TiketId = message.TicketId;
+        TicketId = message.TicketId;
         AuthorName = author.Username;
     }
 }

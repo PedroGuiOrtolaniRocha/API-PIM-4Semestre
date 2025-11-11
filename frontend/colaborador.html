@@ -40,6 +40,7 @@
                 <!-- Mensagens serão carregadas dinamicamente -->
             </div>
             <div class="chat-input">
+                <label for="chat-input" style="display: none;">Mensagem do chat</label>
                 <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
                 <button class="send-btn" id="send-btn">Enviar</button>
             </div>
@@ -68,6 +69,18 @@
                 <div class="detail-item">
                     <div class="detail-label">Atualizado em:</div>
                     <div class="detail-value" id="ticket-updated">-</div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Especialidades do Ticket</h3>
+                <div id="ticket-specs-container">
+                    <div id="ticket-specs-list" class="specs-list">
+                        <!-- Especialidades do ticket serão carregadas aqui -->
+                    </div>
+                    <button class="action-btn btn-secondary" onclick="abrirModalAdicionarEspecialidades()" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                        + Adicionar Especialidades
+                    </button>
                 </div>
             </div>
 
@@ -112,15 +125,65 @@
                     <textarea id="ticket-description-input" class="form-textarea" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="ticket-spec-select">Especialidade:</label>
-                    <select id="ticket-spec-select" class="form-input" required>
-                        <option value="">Selecione uma especialidade...</option>
-                    </select>
+                    <label class="form-label">Especialidades:</label>
+                    <div id="specs-selection-container" class="specs-selection-container">
+                        <div class="specs-available">
+                            <h4>Especialidades Disponíveis:</h4>
+                            <div id="available-specs-list" class="specs-list">
+                                <!-- Especialidades disponíveis serão carregadas aqui -->
+                            </div>
+                        </div>
+                        <div class="specs-selected">
+                            <h4>Especialidades Selecionadas:</h4>
+                            <div id="selected-specs-list" class="specs-list">
+                                <!-- Especialidades selecionadas aparecerão aqui -->
+                            </div>
+                            <div class="specs-validation">
+                                <small class="validation-message">Selecione pelo menos uma especialidade</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <button type="submit" class="action-btn btn-primary">Criar Ticket</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Especialidades a Ticket Existente -->
+    <div id="manage-specs-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Especialidades ao Ticket</h2>
+                <span class="close" onclick="suporteAPI.closeModal('manage-specs-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Reutilizar o mesmo componente de especialidades do novo ticket -->
+                <div class="form-group">
+                    <label class="form-label">Especialidades:</label>
+                    <div id="modal-specs-selection-container" class="specs-selection-container">
+                        <div class="specs-available">
+                            <h4>Especialidades Disponíveis:</h4>
+                            <div id="modal-available-specs-list" class="specs-list">
+                                <!-- Especialidades disponíveis serão carregadas aqui -->
+                            </div>
+                        </div>
+                        <div class="specs-selected">
+                            <h4>Especialidades Selecionadas:</h4>
+                            <div id="modal-selected-specs-list" class="specs-list">
+                                <!-- Especialidades selecionadas aparecerão aqui -->
+                            </div>
+                            <div class="specs-validation">
+                                <small id="modal-validation-message" class="validation-message">Selecione as especialidades para adicionar</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions" style="margin-top: 1rem;">
+                    <button id="confirm-add-specs" class="action-btn btn-primary">Adicionar Selecionadas</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -135,6 +198,15 @@
         function closeTicket() {
             encerrarTicket();
         }
+
+
+        // Configurar event listeners quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnConfirmar = document.getElementById('confirm-add-specs');
+            if (btnConfirmar && typeof confirmarAdicionarEspecialidades === 'function') {
+                btnConfirmar.onclick = confirmarAdicionarEspecialidades;
+            }
+        });
     </script>
 </body>
 </html>

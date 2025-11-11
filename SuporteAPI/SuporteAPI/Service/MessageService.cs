@@ -84,7 +84,7 @@ public class MessageService : IMessageService
             {
                 Time = ticket.Time,
                 Text = ticket.UserText,
-                TiketId = ticket.TicketId,
+                TicketId = ticket.TicketId,
                 AuthorName = (await _userRepository.GetUserById(ticket.UserId)).Username
             });
             
@@ -92,7 +92,7 @@ public class MessageService : IMessageService
             {
                 Time = ticket.Time,
                 Text = ticket.BotText,
-                TiketId = ticket.TicketId,
+                TicketId = ticket.TicketId,
                 AuthorName = "SuporteBot"
             });
         }

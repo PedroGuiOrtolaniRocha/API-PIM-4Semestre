@@ -50,7 +50,7 @@ public class MessageController : ControllerBase
             Time = DateTime.Now,
             BotText = "",
             UserText = recivied.Text,
-            TicketId = recivied.TiketId
+            TicketId = recivied.TicketId
         };
             
         Message updateMsg = await _messageService.SendMessage(message) ?? new Message

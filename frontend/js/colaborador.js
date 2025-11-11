@@ -62,6 +62,15 @@ function finalizarInicializacao() {
     atualizarEstadoChat();
     carregarTickets();
     carregarEspecialidades();
+    
+    // Configurar event listeners para modais
+    setTimeout(() => {
+        const btnConfirmar = document.getElementById('confirm-add-specs');
+        if (btnConfirmar) {
+            btnConfirmar.onclick = confirmarAdicionarEspecialidades;
+            console.log('✅ Event listener do botão confirmar configurado');
+        }
+    }, 1000);
 }
 
 async function carregarTickets() {
@@ -74,26 +83,132 @@ async function carregarTickets() {
     }
 }
 
+let especialidadesDisponiveis = [];
+let especialidadesSelecionadas = []; // Para novo ticket
+let especialidadesModalSelecionadas = []; // Para adicionar a ticket existente
+
 async function carregarEspecialidades() {
     try {
         const especialidades = await suporteAPI.chamarAPI('/Spec');
-        const selectEspec = document.getElementById('ticket-spec-select');
         
-        if (selectEspec && especialidades && Array.isArray(especialidades)) {
-            // Limpar opções existentes exceto a primeira
-            selectEspec.innerHTML = '<option value="">Selecione uma especialidade...</option>';
-            
-            especialidades.forEach(spec => {
-                const option = document.createElement('option');
-                option.value = spec.id;
-                option.textContent = spec.name;
-                selectEspec.appendChild(option);
-            });
+        if (especialidades && Array.isArray(especialidades)) {
+            especialidadesDisponiveis = especialidades;
+            renderizarEspecialidadesDisponiveis('novo-ticket');
         }
     } catch (error) {
         console.error('❌ Erro ao carregar especialidades:', error);
         suporteAPI.mostrarMensagem('Erro ao carregar especialidades', 'error');
     }
+}
+
+// Função genérica para renderizar especialidades disponíveis
+function renderizarEspecialidadesDisponiveis(contexto = 'novo-ticket') {
+    const containerId = contexto === 'novo-ticket' ? 'available-specs-list' : 'modal-available-specs-list';
+    const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
+    
+    const containerDisponiveis = document.getElementById(containerId);
+    if (!containerDisponiveis) return;
+    
+    containerDisponiveis.innerHTML = '';
+    
+    const disponiveisParaMostrar = especialidadesDisponiveis.filter(spec => 
+        !especialidadesSel.some(sel => sel.id === spec.id)
+    );
+    
+    if (disponiveisParaMostrar.length === 0) {
+        containerDisponiveis.innerHTML = '<em style="color: #666;">Todas as especialidades foram selecionadas</em>';
+        return;
+    }
+    
+    disponiveisParaMostrar.forEach(spec => {
+        const specElement = document.createElement('span');
+        specElement.className = 'spec-item available';
+        specElement.textContent = spec.name;
+        specElement.onclick = () => selecionarEspecialidade(spec, contexto);
+        containerDisponiveis.appendChild(specElement);
+    });
+}
+
+// Função genérica para renderizar especialidades selecionadas
+function renderizarEspecialidadesSelecionadas(contexto = 'novo-ticket') {
+    const containerId = contexto === 'novo-ticket' ? 'selected-specs-list' : 'modal-selected-specs-list';
+    const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
+    
+    const containerSelecionadas = document.getElementById(containerId);
+    if (!containerSelecionadas) return;
+    
+    containerSelecionadas.innerHTML = '';
+    
+    if (especialidadesSel.length === 0) {
+        containerSelecionadas.innerHTML = '<em style="color: #666;">Nenhuma especialidade selecionada</em>';
+    } else {
+        especialidadesSel.forEach(spec => {
+            const specElement = document.createElement('span');
+            specElement.className = 'spec-item selected';
+            specElement.textContent = spec.name;
+            specElement.onclick = () => removerEspecialidade(spec, contexto);
+            containerSelecionadas.appendChild(specElement);
+        });
+    }
+    
+    atualizarValidacaoEspecialidades(contexto);
+}
+
+// Função genérica para selecionar especialidade
+function selecionarEspecialidade(spec, contexto = 'novo-ticket') {
+    const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
+    
+    if (!especialidadesSel.some(sel => sel.id === spec.id)) {
+        if (contexto === 'novo-ticket') {
+            especialidadesSelecionadas.push(spec);
+        } else {
+            especialidadesModalSelecionadas.push(spec);
+        }
+        
+        renderizarEspecialidadesDisponiveis(contexto);
+        renderizarEspecialidadesSelecionadas(contexto);
+        console.log('✅ Especialidade selecionada:', spec.name);
+    }
+}
+
+// Função genérica para remover especialidade
+function removerEspecialidade(spec, contexto = 'novo-ticket') {
+    if (contexto === 'novo-ticket') {
+        especialidadesSelecionadas = especialidadesSelecionadas.filter(sel => sel.id !== spec.id);
+    } else {
+        especialidadesModalSelecionadas = especialidadesModalSelecionadas.filter(sel => sel.id !== spec.id);
+    }
+    
+    renderizarEspecialidadesDisponiveis(contexto);
+    renderizarEspecialidadesSelecionadas(contexto);
+    console.log('❌ Especialidade removida:', spec.name);
+}
+
+// Função genérica para atualizar validação
+function atualizarValidacaoEspecialidades(contexto = 'novo-ticket') {
+    const validationId = contexto === 'novo-ticket' ? '.validation-message' : '#modal-validation-message';
+    const especialidadesSel = contexto === 'novo-ticket' ? especialidadesSelecionadas : especialidadesModalSelecionadas;
+    
+    const validationMessage = document.querySelector(validationId);
+    if (!validationMessage) return;
+    
+    if (especialidadesSel.length === 0) {
+        validationMessage.textContent = contexto === 'novo-ticket' ? 'Selecione pelo menos uma especialidade' : 'Selecione as especialidades para adicionar';
+        validationMessage.className = contexto === 'novo-ticket' ? 'validation-message' : 'validation-message';
+    } else {
+        validationMessage.textContent = `${especialidadesSel.length} especialidade(s) selecionada(s)`;
+        validationMessage.className = contexto === 'novo-ticket' ? 'validation-message valid' : 'validation-message valid';
+    }
+}
+
+function limparSelecaoEspecialidades(contexto = 'novo-ticket') {
+    if (contexto === 'novo-ticket') {
+        especialidadesSelecionadas = [];
+    } else {
+        especialidadesModalSelecionadas = [];
+    }
+    renderizarEspecialidadesDisponiveis(contexto);
+    renderizarEspecialidadesSelecionadas(contexto);
 }
 
 async function carregarMensagens(ticketId) {
@@ -155,6 +270,12 @@ async function selecionarTicket(ticket) {
     
     await atualizarDetalhesTicket(ticket);
     
+    // Forçar carregamento das especialidades após um pequeno delay
+    setTimeout(() => {
+        console.log('🔄 Recarregando especialidades do ticket:', ticket.id);
+        carregarEspecialidadesDoTicket(ticket.id);
+    }, 500);
+    
     atualizarEstadoChat();
 }
 
@@ -203,6 +324,7 @@ async function atualizarDetalhesTicket(ticket) {
     });
     
     await carregarInformacoesTecnico(ticket);
+    await carregarEspecialidadesDoTicket(ticket.id);
 }
 
 async function carregarInformacoesTecnico(ticket) {
@@ -292,7 +414,7 @@ function configurarEntradaChat() {
                 return;
             }
             
-            await enviarMensagemChat(ticketSelecionado.id, texto, usuarioAtual.id);
+            await enviarMensagemChat(ticketSelecionado.id, texto, usuarioAtual.username);
             entradaChat.value = '';
         };
         
@@ -310,9 +432,7 @@ function verificarChatAberto() {
         return false;
     }
     
-    const chatAberto = ticketSelecionado.status === 'Aberto';
-    
-    return chatAberto;
+    return ticketSelecionado.status === 'Aberto';
 }
 
 function atualizarEstadoChat() {
@@ -346,15 +466,15 @@ function atualizarEstadoChat() {
     }
 }
 
-async function enviarMensagemChat(ticketId, textoUsuario, autorId) {
+async function enviarMensagemChat(ticketId, textoUsuario, authorName) {
     try {
         console.log('� Usuário enviou mensagem para ticket:', ticketId);
         
         const dadosMensagem = {
-            ticketId: ticketId,
-            userText: textoUsuario,
-            authorId: autorId,
-            time: new Date().toISOString()
+            TicketId: ticketId,
+            Text: textoUsuario,
+            AuthorName: authorName,
+            Time: new Date().toISOString()
         };
         
         await suporteAPI.chamarAPI('/Message', 'POST', dadosMensagem);
@@ -427,20 +547,214 @@ async function criarTicket(dadosTicket) {
         const ticketDto = {
             title: dadosTicket.title,
             description: dadosTicket.description,
-            userId: dadosTicket.userId,
-            specId: dadosTicket.specId,
-            status: dadosTicket.status || 'Aberto',
+            specIds: dadosTicket.specIds || [], // Array de IDs das especialidades
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         };
         
-        await suporteAPI.chamarAPI('/Ticket', 'POST', ticketDto);
-        console.log('✅ Ticket criado com sucesso');
+        const ticketCriado = await suporteAPI.chamarAPI('/Ticket', 'POST', ticketDto);
+        console.log('✅ Ticket criado com sucesso:', ticketCriado);
+        
+        // Se o backend não suporta specIds diretamente, adicionar especialidades uma por uma
+        if (dadosTicket.specIds && dadosTicket.specIds.length > 0) {
+            console.log('🔗 Adicionando especialidades ao ticket...');
+            
+            for (const specId of dadosTicket.specIds) {
+                try {
+                    await suporteAPI.chamarAPI(`/Ticket/${ticketCriado.id}/addSpec`, 'PATCH', specId);
+                    console.log('✅ Especialidade adicionada:', specId);
+                } catch (error) {
+                    console.warn('⚠️ Erro ao adicionar especialidade:', specId, error);
+                }
+            }
+        }
+        
         await carregarTickets();
-        suporteAPI.mostrarMensagem('Ticket criado com sucesso', 'success');
+        suporteAPI.mostrarMensagem(`Ticket criado com ${dadosTicket.specIds.length} especialidade(s)`, 'success');
     } catch (error) {
         console.error('❌ Erro ao criar ticket:', error);
         suporteAPI.mostrarMensagem('Erro ao criar ticket', 'error');
     }
 }
+
+async function carregarEspecialidadesDoTicket(ticketId) {
+    if (!ticketId) return;
+    
+    try {
+        // Tentar endpoint específico para especialidades do ticket
+        let specs = await suporteAPI.chamarAPI(`/Ticket/${ticketId}/specs`);
+        
+        // Se não funcionar, tentar buscar via relações TicketSpecRelation
+        if (!specs || specs.length === 0) {
+            console.log('🔄 Tentando buscar especialidades via TicketSpecRelation...');
+            const relacoes = await suporteAPI.chamarAPI('/TicketSpecRelation');
+            const relacoesDoTicket = relacoes.filter(rel => rel.ticketId === ticketId);
+            
+            for (const relacao of relacoesDoTicket) {
+                try {
+                    const spec = await suporteAPI.chamarAPI(`/Spec/${relacao.specId}`);
+                    if (spec) specs.push(spec);
+                } catch (error) {
+                    console.warn('⚠️ Erro ao carregar especialidade:', relacao.specId);
+                }
+            }
+        }
+        
+        renderizarEspecialidadesDoTicket(specs || []);
+    } catch (error) {
+        console.error('❌ Erro ao carregar especialidades do ticket:', error);
+        renderizarEspecialidadesDoTicket([]);
+    }
+}
+
+function renderizarEspecialidadesDoTicket(specs) {
+    const container = document.getElementById('ticket-specs-list');
+    if (!container) {
+        console.error('❌ Container ticket-specs-list não encontrado');
+        return;
+    }
+    
+    console.log('🔍 Renderizando especialidades do ticket:', specs);
+    container.innerHTML = '';
+    
+    if (specs.length === 0) {
+        container.innerHTML = '<em style="color: #666;">Nenhuma especialidade associada</em>';
+        return;
+    }
+    
+    specs.forEach(spec => {
+        const specElement = document.createElement('span');
+        specElement.className = 'spec-item selected';
+        specElement.textContent = spec.name || 'Especialidade sem nome';
+        specElement.onclick = () => confirmarRemocaoEspecialidade(spec);
+        specElement.title = 'Clique para remover';
+        container.appendChild(specElement);
+        console.log('✅ Especialidade renderizada:', spec.name);
+    });
+}
+
+function abrirModalAdicionarEspecialidades() {
+    console.log('🔧 Abrindo modal de especialidades...');
+    
+    if (!ticketSelecionado) {
+        console.warn('⚠️ Nenhum ticket selecionado');
+        suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
+        return;
+    }
+    
+    console.log('📋 Ticket selecionado:', ticketSelecionado.title);
+    
+    // Limpar seleção anterior do modal
+    especialidadesModalSelecionadas = [];
+    
+    // Carregar especialidades já no ticket e filtrar das disponíveis
+    carregarEspecialidadesParaModal();
+    
+    suporteAPI.openModal('manage-specs-modal');
+    console.log('✅ Modal aberto com sucesso');
+}
+
+async function carregarEspecialidadesParaModal() {
+    try {
+        // Obter especialidades já no ticket
+        let specsDoTicket = [];
+        
+        try {
+            specsDoTicket = await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/specs`) || [];
+        } catch (error) {
+            console.log('🔄 Usando método alternativo para buscar especialidades do ticket...');
+            const relacoes = await suporteAPI.chamarAPI('/TicketSpecRelation');
+            const relacoesDoTicket = relacoes.filter(rel => rel.ticketId === parseInt(ticketSelecionado.id));
+            
+            for (const relacao of relacoesDoTicket) {
+                try {
+                    const spec = await suporteAPI.chamarAPI(`/Spec/${relacao.specId}`);
+                    if (spec) specsDoTicket.push(spec);
+                } catch (err) {
+                    console.warn('⚠️ Erro ao carregar especialidade no modal:', relacao.specId);
+                }
+            }
+        }
+        
+        // Filtrar especialidades disponíveis (remover as que já estão no ticket)
+        const idsDoTicket = specsDoTicket.map(spec => spec.id);
+        const especialidadesDisponiveisParaAdicionar = especialidadesDisponiveis.filter(spec => 
+            !idsDoTicket.includes(spec.id)
+        );
+        
+        // Temporariamente substituir a lista global para renderização
+        const especialidadesOriginais = [...especialidadesDisponiveis];
+        especialidadesDisponiveis = especialidadesDisponiveisParaAdicionar;
+        
+        // Renderizar listas do modal
+        renderizarEspecialidadesDisponiveis('modal');
+        renderizarEspecialidadesSelecionadas('modal');
+        
+        // Restaurar lista original
+        especialidadesDisponiveis = especialidadesOriginais;
+        
+        if (especialidadesDisponiveisParaAdicionar.length === 0) {
+            const container = document.getElementById('modal-available-specs-list');
+            if (container) {
+                container.innerHTML = '<em style="color: #666;">Todas as especialidades já estão no ticket</em>';
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar especialidades para o modal:', error);
+        const container = document.getElementById('modal-available-specs-list');
+        if (container) {
+            container.innerHTML = '<em style="color: #e74c3c;">Erro ao carregar especialidades</em>';
+        }
+    }
+}
+
+
+async function confirmarAdicionarEspecialidades() {
+    if (!ticketSelecionado || especialidadesModalSelecionadas.length === 0) {
+        suporteAPI.mostrarMensagem('Selecione pelo menos uma especialidade', 'error');
+        return;
+    }
+    
+    try {
+        console.log('🔗 Adicionando especialidades ao ticket:', ticketSelecionado.id);
+        
+        for (const spec of especialidadesModalSelecionadas) {
+            console.log(spec);
+            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/addSpec`, 'PATCH', spec.id);
+            console.log('✅ Especialidade adicionada:', spec.name);
+        }
+        
+        await carregarEspecialidadesDoTicket(ticketSelecionado.id);
+        suporteAPI.mostrarMensagem(`${especialidadesModalSelecionadas.length} especialidade(s) adicionada(s)`, 'success');
+        suporteAPI.closeModal('manage-specs-modal');
+        
+        // Limpar seleção do modal
+        especialidadesModalSelecionadas = [];
+    } catch (error) {
+        console.error('❌ Erro ao adicionar especialidades:', error);
+        suporteAPI.mostrarMensagem('Erro ao adicionar especialidades', 'error');
+    }
+}
+
+async function confirmarRemocaoEspecialidade(spec) {
+    if (!ticketSelecionado) return;
+    
+    if (confirm(`Tem certeza que deseja remover a especialidade "${spec.name}" deste ticket?`)) {
+        try {
+            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/removeSpec`, 'PATCH', spec.id);
+            await carregarEspecialidadesDoTicket(ticketSelecionado.id);
+            suporteAPI.mostrarMensagem('Especialidade removida com sucesso', 'success');
+        } catch (error) {
+            console.error('❌ Erro ao remover especialidade:', error);
+            suporteAPI.mostrarMensagem('Erro ao remover especialidade', 'error');
+        }
+    }
+}
+
+// Expor funções globalmente para o HTML
+window.abrirModalAdicionarEspecialidades = abrirModalAdicionarEspecialidades;
+window.confirmarAdicionarEspecialidades = confirmarAdicionarEspecialidades;
 
 document.addEventListener('DOMContentLoaded', () => {
     inicializarPagina();
@@ -452,32 +766,36 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const titulo = document.getElementById('ticket-title-input').value;
             const descricao = document.getElementById('ticket-description-input').value;
-            const especialidadeId = document.getElementById('ticket-spec-select').value;
             
-            // Validação obrigatória da especialidade
-            if (!especialidadeId) {
-                suporteAPI.mostrarMensagem('É obrigatório selecionar uma especialidade', 'error');
+            // Validação das especialidades selecionadas
+            if (especialidadesSelecionadas.length === 0) {
+                suporteAPI.mostrarMensagem('É obrigatório selecionar pelo menos uma especialidade', 'error');
                 return;
             }
             
-            console.log('➕ Usuário criou novo ticket com especialidade:', especialidadeId);
+            const especIds = especialidadesSelecionadas.map(spec => spec.id);
+            
+            console.log('➕ Usuário criou novo ticket com especialidades:', especIds);
             
             const dadosTicket = {
                 title: titulo,
                 description: descricao,
-                userId: usuarioAtual.id,
-                specId: parseInt(especialidadeId),
-                status: 'Aberto',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                specIds: especIds,
+                status: 'Aberto'
             };
             
             criarTicket(dadosTicket);
             suporteAPI.closeModal('new-ticket-modal');
             
+            // Limpar formulário
             document.getElementById('ticket-title-input').value = '';
             document.getElementById('ticket-description-input').value = '';
-            document.getElementById('ticket-spec-select').value = '';
+            limparSelecaoEspecialidades('novo-ticket');
         });
     }
 });
+
+// Expor funções globalmente para acesso via HTML
+window.abrirModalAdicionarEspecialidades = abrirModalAdicionarEspecialidades;
+window.confirmarAdicionarEspecialidades = confirmarAdicionarEspecialidades;
+
