@@ -1,6 +1,16 @@
 USE SuporteDB;
 GO
 
+-- Remover tabelas existentes na ordem de dependência (para evitar conflitos de foreign key)
+DROP TABLE IF EXISTS TicketSpecRelation;
+DROP TABLE IF EXISTS Message;
+DROP TABLE IF EXISTS Ticket;
+DROP TABLE IF EXISTS TecRegister;
+DROP TABLE IF EXISTS Spec;
+DROP TABLE IF EXISTS [User];
+GO
+
+-- Criar tabelas na ordem correta de dependência
 CREATE TABLE Spec (
     Id INT PRIMARY KEY IDENTITY(1,1),
     Name NVARCHAR(100) NOT NULL,

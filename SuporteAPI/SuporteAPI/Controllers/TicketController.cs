@@ -87,4 +87,12 @@ public class TicketController: ControllerBase
         var specs = await _ticketService.GetSpecsByTicketId(id);
         return Ok(specs);
     }
+
+    [HttpGet("user/{userId}", Name = "GetTicketsByUserId")]
+    [Authorize]
+    public async Task<IActionResult> GetTicketsByUserId(int userId)
+    {
+        var tickets = await _ticketService.GetAllTicketsByUser(userId);
+        return Ok(tickets);
+    }
 }

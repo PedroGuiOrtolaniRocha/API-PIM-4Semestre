@@ -97,8 +97,10 @@ public class TicketService : ITicketService
     
     public async Task<User?> GetMostAvaliableTec(int ticketId)
     {
-        List<TicketSpecRelation> specs = await _ticketSpecRelationRepository.GetByTicketId(ticketId);
+        Console.WriteLine($"🔍 Buscando técnico disponível para ticket {ticketId}");
         
+        List<TicketSpecRelation> specs = await _ticketSpecRelationRepository.GetByTicketId(ticketId);
+        Console.WriteLine($"📋 Ticket possui {specs.Count} especialidades");
         
         if (specs.Count == 0)
         {
@@ -106,16 +108,25 @@ public class TicketService : ITicketService
         }
         
         var tecRegisters = await _registerRepository.GetBySpecListId(specs.Select(x => x.SpecId).ToList());
+        Console.WriteLine($"👥 Encontrados {tecRegisters.Count} técnicos com especialidades necessárias");
         
         var userIds = tecRegisters.Select(x => x.UserId).Distinct().ToList();
         Dictionary<int, int> userTicketCounts = new Dictionary<int, int>();
+        
         foreach (var userId in userIds)
         {
             int ticketCount = await _ticketRepository.GetOpenTicketCountByTecId(userId);
             userTicketCounts.Add(userId, ticketCount);
+            Console.WriteLine($"👤 Técnico {userId}: {ticketCount} tickets em andamento");
+        }
+
+        if (userTicketCounts.Count == 0)
+        {
+            throw new SuporteApiException("Nenhum técnico disponível para as especialidades do ticket", 404);
         }
 
         int tecId = userTicketCounts.MinBy(x => x.Value).Key;
+        Console.WriteLine($"✅ Técnico selecionado: {tecId} (menor carga: {userTicketCounts[tecId]} tickets)");
         
         User? user = await _userRepository.GetUserById(tecId);
         if (user == null)
@@ -126,7 +137,7 @@ public class TicketService : ITicketService
         return user;
     }
 
-    public async Task<Ticket> ChangeTec(int ticketId, int newOwnerId)
+    public async Task<Ticket?> ChangeTec(int ticketId, int newOwnerId)
     {
         await ValidateTecForTicket(newOwnerId, ticketId);
         Ticket? ticket = await _ticketRepository.GetTicketById(ticketId);
@@ -216,6 +227,8 @@ public class TicketService : ITicketService
     
     public async Task<bool> RouteTicket(int ticketId)
     {
+        Console.WriteLine($"🎯 Iniciando roteamento do ticket {ticketId}");
+        
         Ticket? ticket = await _ticketRepository.GetTicketById(ticketId);
         
         if (ticket == null)
@@ -227,6 +240,13 @@ public class TicketService : ITicketService
         {
             throw new SuporteApiException("Ticket já está encerrado");
         }
+
+        // Se já tem técnico atribuído e está escalado, não rotear novamente
+        if (ticket.TecUserId.HasValue && ticket.Status == nameof(TicketStatus.Escalado))
+        {
+            Console.WriteLine($"⚠️ Ticket {ticketId} já está escalado para técnico {ticket.TecUserId}");
+            throw new SuporteApiException("Ticket já está escalado para um técnico");
+        }
         
         User? tec = await GetMostAvaliableTec(ticketId);
         
@@ -235,8 +255,12 @@ public class TicketService : ITicketService
             throw new SuporteApiException("Não foi possível encontrar um técnico disponível", 404);
         }
 
+        Console.WriteLine($"✅ Atribuindo ticket {ticketId} ao técnico {tec.Id} ({tec.Email})");
+
         ticket.TecUserId = tec.Id;
         ticket.Status = nameof(TicketStatus.Escalado);
+        ticket.UpdatedAt = DateTime.Now;
+        
         var resp = await _ticketRepository.UpdateTicket(ticket);
         
         if (resp == null)
@@ -244,6 +268,7 @@ public class TicketService : ITicketService
             throw new SuporteApiException("Erro ao rotear ticket");
         }
         
+        Console.WriteLine($"🎉 Ticket {ticketId} roteado com sucesso para técnico {tec.Id}");
         return true;
     }
 }

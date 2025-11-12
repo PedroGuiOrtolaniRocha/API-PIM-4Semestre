@@ -91,26 +91,42 @@ async function chamarAPI(endpoint, metodo = 'GET', dados = null) {
         console.log(`Fazendo chamada ${metodo} para ${API_BASE_URL}${endpoint}`);
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
         
+        // Tratamento de autenticação expirada
         if (response.status === 401) {
             console.log('Token JWT expirado ou inválido - fazendo logout');
             mostrarMensagem('Sessão expirada. Faça login novamente.', 'error');
             logout();
-            return;
+            return null;
         }
 
+        // Tratamento de erros de validação ou requisição inválida
         if (response.status === 400) {
-            const erroDados = await response.json();
-            mostrarMensagem(`Erro: ${erroDados.message || 'Requisição inválida.'}`, 'error');
+            const erroDados = await response.json().catch(() => ({}));
+            const mensagemErro = erroDados.message || erroDados.error || 'Requisição inválida';
+            mostrarMensagem(mensagemErro, 'error');
+            throw new Error(mensagemErro);
         }
         
+        // Tratamento de outros erros HTTP
         if (!response.ok) {
-            throw new Error(`Erro HTTP! Status: ${response.status}`);
+            const erroDados = await response.json().catch(() => ({}));
+            const mensagemErro = erroDados.message || erroDados.error || `Erro na requisição: ${response.status}`;
+            mostrarMensagem(mensagemErro, 'error');
+            throw new Error(mensagemErro);
         }
         
         const resultado = await response.json();
         console.log('Resposta da API recebida:', resultado);
         return resultado;
     } catch (error) {
+        // Se o erro já foi tratado acima (Bad Request, etc), apenas propaga
+        if (error.message && !error.message.includes('fetch')) {
+            throw error;
+        }
+        
+        // Tratamento de erros de rede ou outros erros inesperados
+        console.error('❌ Erro na requisição:', error);
+        mostrarMensagem('Erro de conexão com o servidor', 'error');
         throw error;
     }
 }
@@ -196,6 +212,85 @@ function verificarAutenticacao() {
     return true;
 }
 
+// Funções comuns para renderização de tickets e mensagens
+async function carregarMensagens(ticketId, mensagensArray, renderCallback) {
+    const resultado = await chamarAPI(`/Message/${ticketId.toString()}`, 'GET');
+    const msgs = (resultado && Array.isArray(resultado)) ? resultado : [];
+    
+    // Atualiza o array de mensagens passado por referência
+    mensagensArray.length = 0;
+    mensagensArray.push(...msgs);
+    
+    if (renderCallback) {
+        renderCallback();
+    }
+    
+    return msgs;
+}
+
+function renderizarMensagensChat(mensagensArray) {
+    const chatMensagens = document.getElementById('chat-messages');
+    if (!chatMensagens) return;
+    
+    chatMensagens.innerHTML = '';
+    mensagensArray.forEach(msg => {
+        if (msg.text) {
+            const el = document.createElement('div');
+            el.className = msg.authorName === 'SuporteBot' ? 'message suporte-bot' : 'message user';
+            el.innerHTML = `
+                <div class="message-author">${msg.authorName}</div>
+                <div>${msg.text}</div>
+                <div class="message-time">${formatarData(msg.time)}</div>
+            `;
+            chatMensagens.appendChild(el);
+        }
+    });
+    chatMensagens.scrollTop = chatMensagens.scrollHeight;
+}
+
+function renderizarListaTickets(ticketsArray, selecionarCallback) {
+    const listaTickets = document.getElementById('ticket-list');
+    if (!listaTickets) return;
+    
+    listaTickets.innerHTML = '';
+    const ticketsAbertos = ticketsArray.filter(ticket => ticket.status !== 'Fechado');
+    
+    ticketsAbertos.forEach(ticket => {
+        const elementoTicket = document.createElement('div');
+        elementoTicket.className = 'list-item';
+        elementoTicket.onclick = () => selecionarCallback(ticket);
+        
+        elementoTicket.innerHTML = `
+            <div class="ticket-title">${ticket.title}</div>
+            <div class="ticket-status ${obterClasseStatus(ticket.status)}">
+                <span class="status-badge">${ticket.status}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
+                ${formatarData(ticket.createdAt)}
+            </div>
+        `;
+        
+        listaTickets.appendChild(elementoTicket);
+    });
+}
+
+async function atualizarDetalhesTicket(ticket) {
+    const elementos = {
+        'ticket-status': ticket.status,
+        'ticket-title': ticket.title,
+        'ticket-description': ticket.description,
+        'ticket-created': formatarData(ticket.createdAt),
+        'ticket-updated': formatarData(ticket.updatedAt)
+    };
+    
+    Object.entries(elementos).forEach(([id, valor]) => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.textContent = valor;
+        }
+    });
+}
+
 window.suporteAPI = {
     abrirModal,
     fecharModal,
@@ -209,6 +304,12 @@ window.suporteAPI = {
     verificarAutenticacao,
     setCookie,
     getCookie,
-    deleteCookie
+    deleteCookie,
+    // Funções comuns de renderização
+    carregarMensagens,
+    renderizarMensagensChat,
+    renderizarListaTickets,
+    atualizarDetalhesTicket
 };
+
 

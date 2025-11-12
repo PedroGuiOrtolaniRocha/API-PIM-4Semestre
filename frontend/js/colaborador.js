@@ -30,25 +30,17 @@ function inicializarPagina() {
 }
 
 async function carregarTickets() {
-    try {
-        tickets = await suporteAPI.chamarAPI('/Ticket');
-        renderizarListaTickets();
-    } catch (error) {
-        console.error('❌ Erro ao carregar tickets:', error);
-        suporteAPI.mostrarMensagem('Erro ao carregar tickets', 'error');
-    }
+    console.log('📋 Carregando tickets para usuário:', usuarioAtual.id);
+    tickets = await suporteAPI.chamarAPI(`/Ticket/user/${usuarioAtual.id.toString()}`);
+    console.log('✅ Tickets carregados:', tickets.length);
+    suporteAPI.renderizarListaTickets(tickets, selecionarTicket);
 }
 
 async function carregarEspecialidades() {
-    try {
-        const especialidades = await suporteAPI.chamarAPI('/Spec');
-        if (especialidades && Array.isArray(especialidades)) {
-            especialidadesDisponiveis = especialidades;
-            renderizarEspecialidadesDisponiveis('novo-ticket');
-        }
-    } catch (error) {
-        console.error('❌ Erro ao carregar especialidades:', error);
-        suporteAPI.mostrarMensagem('Erro ao carregar especialidades', 'error');
+    const especialidades = await suporteAPI.chamarAPI('/Spec');
+    if (especialidades && Array.isArray(especialidades)) {
+        especialidadesDisponiveis = especialidades;
+        renderizarEspecialidadesDisponiveis('novo-ticket');
     }
 }
 
@@ -138,42 +130,13 @@ function limparSelecaoEspecialidades(contexto = 'novo-ticket') {
 }
 
 async function carregarMensagens(ticketId) {
-    try {
-        const resultado = await suporteAPI.chamarAPI(`/Message/${ticketId}`, 'GET');
-        mensagens = (resultado && Array.isArray(resultado)) ? resultado : [];
-        renderizarMensagensChat();
-    } catch (error) {
-        console.error('❌ Erro ao carregar mensagens:', error);
-        mensagens = [];
-        renderizarMensagensChat();
-        suporteAPI.mostrarMensagem('Erro ao carregar mensagens', 'error');
-    }
+    await suporteAPI.carregarMensagens(ticketId, mensagens, () => {
+        suporteAPI.renderizarMensagensChat(mensagens);
+    });
 }
 
 function renderizarListaTickets() {
-    const listaTickets = document.getElementById('ticket-list');
-    if (!listaTickets) return;
-    
-    listaTickets.innerHTML = '';
-    const ticketsAbertos = tickets.filter(ticket => ticket.status !== 'Fechado');
-    
-    ticketsAbertos.forEach(ticket => {
-        const elementoTicket = document.createElement('div');
-        elementoTicket.className = 'list-item';
-        elementoTicket.onclick = () => selecionarTicket(ticket);
-        
-        elementoTicket.innerHTML = `
-            <div class="ticket-title">${ticket.title}</div>
-            <div class="ticket-status ${suporteAPI.obterClasseStatus(ticket.status)}">
-                <span class="status-badge">${ticket.status}</span>
-            </div>
-            <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
-                ${suporteAPI.formatarData(ticket.createdAt)}
-            </div>
-        `;
-        
-        listaTickets.appendChild(elementoTicket);
-    });
+    suporteAPI.renderizarListaTickets(tickets, selecionarTicket);
 }
 
 async function selecionarTicket(ticket) {
@@ -186,41 +149,11 @@ async function selecionarTicket(ticket) {
 }
 
 function renderizarMensagensChat() {
-    const chatMensagens = document.getElementById('chat-messages');
-    if (!chatMensagens) return;
-    
-    chatMensagens.innerHTML = '';
-    mensagens.forEach(msg => {
-        if (msg.text) {
-            const el = document.createElement('div');
-            el.className = msg.authorName === 'SuporteBot' ? 'message suporte-bot' : 'message user';
-            el.innerHTML = `
-                <div class="message-author">${msg.authorName}</div>
-                <div>${msg.text}</div>
-                <div class="message-time">${suporteAPI.formatarData(msg.time)}</div>
-            `;
-            chatMensagens.appendChild(el);
-        }
-    });
-    chatMensagens.scrollTop = chatMensagens.scrollHeight;
+    suporteAPI.renderizarMensagensChat(mensagens);
 }
 
 async function atualizarDetalhesTicket(ticket) {
-    const elementos = {
-        'ticket-status': ticket.status,
-        'ticket-title': ticket.title,
-        'ticket-description': ticket.description,
-        'ticket-created': suporteAPI.formatarData(ticket.createdAt),
-        'ticket-updated': suporteAPI.formatarData(ticket.updatedAt)
-    };
-    
-    Object.entries(elementos).forEach(([id, valor]) => {
-        const elemento = document.getElementById(id);
-        if (elemento) {
-            elemento.textContent = valor;
-        }
-    });
-    
+    await suporteAPI.atualizarDetalhesTicket(ticket);
     await carregarInformacoesTecnico(ticket);
     await carregarEspecialidadesDoTicket(ticket.id);
 }
@@ -230,42 +163,49 @@ async function carregarInformacoesTecnico(ticket) {
     const elemTechSpec = document.getElementById('tech-spec');
     if (!elemTechName || !elemTechSpec) return;
     
+    console.log('🔍 Carregando informações do técnico para ticket:', ticket.id, 'tecUserId:', ticket.tecUserId);
+    
     elemTechName.textContent = 'Não atribuído';
     elemTechSpec.textContent = '-';
-    if (!ticket.tecUserId) return;
     
-    try {
-        const tecnico = await suporteAPI.chamarAPI(`/User/${ticket.tecUserId}`, 'GET');
-        if (tecnico) {
-            elemTechName.textContent = tecnico.email || 'Nome não disponível';
-            await carregarEspecialidadesTecnico(ticket.tecUserId, elemTechSpec);
-        } else {
-            elemTechName.textContent = 'Técnico não encontrado';
-        }
-    } catch (error) {
-        console.error('❌ Erro ao carregar informações do técnico:', error);
-        elemTechName.textContent = 'Erro ao carregar';
-        elemTechSpec.textContent = 'Erro ao carregar';
+    if (!ticket.tecUserId) {
+        console.log('⚠️ Ticket sem técnico atribuído');
+        return;
+    }
+    
+    console.log('👤 Buscando dados do técnico ID:', ticket.tecUserId);
+    const tecnico = await suporteAPI.chamarAPI(`/User/${ticket.tecUserId.toString()}`, 'GET');
+    
+    if (tecnico) {
+        console.log('✅ Técnico encontrado:', tecnico.email);
+        elemTechName.textContent = tecnico.email || tecnico.username || 'Nome não disponível';
+        await carregarEspecialidadesTecnico(ticket.tecUserId, elemTechSpec);
+    } else {
+        console.log('❌ Técnico não encontrado');
+        elemTechName.textContent = 'Técnico não encontrado';
     }
 }
 
 async function carregarEspecialidadesTecnico(tecnicoId, elemTechSpec) {
-    try {
-        const registros = await suporteAPI.chamarAPI('/TecRegister', 'GET');
-        if (registros && Array.isArray(registros)) {
-            const registroTecnico = registros.find(reg => reg.userId === tecnicoId);
-            if (registroTecnico && registroTecnico.specId) {
-                const especialidade = await suporteAPI.chamarAPI(`/Spec/${registroTecnico.specId}`, 'GET');
-                elemTechSpec.textContent = (especialidade && especialidade.name) ? especialidade.name : 'Especialidade não encontrada';
-            } else {
-                elemTechSpec.textContent = 'Sem especialidade registrada';
-            }
+    console.log('🔧 Carregando especialidades do técnico:', tecnicoId);
+    const registros = await suporteAPI.chamarAPI('/TecRegister', 'GET');
+    
+    if (registros && Array.isArray(registros)) {
+        console.log('📋 Registros técnicos encontrados:', registros.length);
+        const registroTecnico = registros.find(reg => reg.userId === tecnicoId);
+        
+        if (registroTecnico && registroTecnico.specId) {
+            console.log('✅ Registro encontrado para técnico, specId:', registroTecnico.specId);
+            const especialidade = await suporteAPI.chamarAPI(`/Spec/${registroTecnico.specId.toString()}`, 'GET');
+            elemTechSpec.textContent = (especialidade && especialidade.name) ? especialidade.name : 'Especialidade não encontrada';
+            console.log('🎯 Especialidade do técnico:', especialidade?.name);
         } else {
-            elemTechSpec.textContent = 'Sem registros disponíveis';
+            console.log('⚠️ Nenhum registro de especialidade para técnico:', tecnicoId);
+            elemTechSpec.textContent = 'Sem especialidade registrada';
         }
-    } catch (error) {
-        console.error('❌ Erro ao carregar especialidades:', error);
-        elemTechSpec.textContent = 'Erro ao carregar especialidade';
+    } else {
+        console.log('❌ Nenhum registro técnico disponível');
+        elemTechSpec.textContent = 'Sem registros disponíveis';
     }
 }
 
@@ -326,119 +266,95 @@ function atualizarEstadoChat() {
 }
 
 async function enviarMensagemChat(ticketId, textoUsuario, authorName) {
+    const novaMensagem = {
+        TicketId: ticketId,
+        Text: textoUsuario,
+        AuthorName: authorName,
+        Time: new Date().toISOString()
+    };
+    
+    // Adiciona otimisticamente
+    mensagens.push({ text: novaMensagem.Text, authorName: novaMensagem.AuthorName, time: novaMensagem.Time });
+    suporteAPI.renderizarMensagensChat(mensagens);
+    
     try {
-        const novaMensagem = {
-            TicketId: ticketId,
-            Text: textoUsuario,
-            AuthorName: authorName,
-            Time: new Date().toISOString()
-        };
-        
-        mensagens.push({ text: novaMensagem.Text, authorName: novaMensagem.AuthorName, time: novaMensagem.Time });
-        renderizarMensagensChat();
-        
         await suporteAPI.chamarAPI('/Message', 'POST', novaMensagem);
-        
         await carregarMensagens(ticketId);
-
-        renderizarMensagensChat();
         suporteAPI.mostrarMensagem('Mensagem enviada com sucesso', 'success');
     } catch (error) {
-        console.error('❌ Erro ao enviar mensagem:', error);
+        // Remove a mensagem otimista em caso de erro
         mensagens.pop();
-        renderizarMensagensChat();
+        suporteAPI.renderizarMensagensChat(mensagens);
     }
 }
 
 async function pedirEscalacao() {
     if (!ticketSelecionado) return suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
     
-    try {
-        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/routeTicket`, 'PATCH');
-        await carregarTickets();
-        
-        const ticketsAtualizados = await suporteAPI.chamarAPI('/Ticket', 'GET');
-        const ticketAtualizado = ticketsAtualizados.find(t => t.id === ticketSelecionado.id);
-        if (ticketAtualizado) {
-            await atualizarDetalhesTicket(ticketAtualizado);
-            ticketSelecionado = ticketAtualizado;
-            atualizarEstadoChat();
-        }
-        
-        suporteAPI.mostrarMensagem('Ticket escalado para técnico disponível', 'success');
-    } catch (error) {
-        console.error('❌ Erro ao escalar ticket:', error);
+    console.log('🚀 Solicitando escalação para ticket:', ticketSelecionado.id);
+    
+    await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id.toString()}/routeTicket`, 'PATCH');
+    
+    console.log('✅ Ticket roteado com sucesso');
+    
+    // Buscar ticket atualizado
+    const ticketAtualizado = await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id.toString()}`);
+    
+    if (ticketAtualizado) {
+        // Atualizar ticketSelecionado ANTES de chamar atualizarDetalhesTicket
+        ticketSelecionado = ticketAtualizado;
+        await atualizarDetalhesTicket(ticketAtualizado);
+        atualizarEstadoChat();
     }
+    
+    await carregarTickets();
+    
+    suporteAPI.mostrarMensagem('Ticket escalado para técnico disponível', 'success');
 }
 
 async function encerrarTicket() {
     if (!ticketSelecionado) return suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
     
     if (confirm('Tem certeza que deseja encerrar este ticket?')) {
-        try {
-            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/finish`, 'PATCH');
-            await carregarTickets();
-            suporteAPI.mostrarMensagem('Ticket encerrado com sucesso', 'success');
-        } catch (error) {
-            console.error('❌ Erro ao encerrar ticket:', error);
-        }
+        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id.toString()}/finish`, 'PATCH');
+        await carregarTickets();
+        suporteAPI.mostrarMensagem('Ticket encerrado com sucesso', 'success');
     }
 }
 
 async function criarTicket(dadosTicket) {
-    try {
-        const ticketCriado = await suporteAPI.chamarAPI('/Ticket', 'POST', {
-            title: dadosTicket.title,
-            description: dadosTicket.description,
-            specIds: dadosTicket.specIds || [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        });
-        
-        if (dadosTicket.specIds && dadosTicket.specIds.length > 0) {
-            for (const specId of dadosTicket.specIds) {
-                try {
-                    console.log('Adicionando especialidade ao ticket:', specId);
-                    await suporteAPI.chamarAPI(`/Ticket/${ticketCriado.id}/addSpec`, 'PATCH', specId.toString());
-                } catch (error) {
-                    console.warn('⚠️ Erro ao adicionar especialidade:', specId, error);
-                }
-            }
+    const ticketCriado = await suporteAPI.chamarAPI('/Ticket', 'POST', {
+        title: dadosTicket.title,
+        description: dadosTicket.description,
+        specIds: dadosTicket.specIds || [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    });
+    
+    if (dadosTicket.specIds && dadosTicket.specIds.length > 0) {
+        for (const specId of dadosTicket.specIds) {
+            console.log('Adicionando especialidade ao ticket:', specId);
+            await suporteAPI.chamarAPI(`/Ticket/${ticketCriado.id}/addSpec`, 'PATCH', specId.toString());
         }
-        
-        await carregarTickets();
-        suporteAPI.mostrarMensagem(`Ticket criado com ${dadosTicket.specIds.length} especialidade(s)`, 'success');
-    } catch (error) {
-        console.error('❌ Erro ao criar ticket:', error);
-        suporteAPI.mostrarMensagem('Erro ao criar ticket', 'error');
     }
+    
+    await carregarTickets();
+    suporteAPI.mostrarMensagem(`Ticket criado com ${dadosTicket.specIds.length} especialidade(s)`, 'success');
 }
 
 async function carregarEspecialidadesDoTicket(ticketId) {
     if (!ticketId) return;
     
-    try {
-        let specs = await suporteAPI.chamarAPI(`/Ticket/${ticketId}/specs`);
-        
-        if (!specs || specs.length === 0) {
-            const relacoes = await suporteAPI.chamarAPI('/TicketSpecRelation');
-            const relacoesDoTicket = relacoes.filter(rel => rel.ticketId === ticketId);
-            specs = [];
-            for (const relacao of relacoesDoTicket) {
-                try {
-                    const spec = await suporteAPI.chamarAPI(`/Spec/${relacao.specId}`);
-                    if (spec) specs.push(spec);
-                } catch (error) {
-                    console.warn('⚠️ Erro ao carregar especialidade:', relacao.specId);
-                }
-            }
+    let specs = await suporteAPI.chamarAPI(`/Ticket/${ticketId}/specs`);
+    
+    if (!specs || specs.length === 0) {
+        for (const spec of specs) {
+            const spec = await suporteAPI.chamarAPI(`/Spec/${spec.id.toString()}`);
+            if (spec) specs.push(spec);
         }
-        
-        renderizarEspecialidadesDoTicket(specs || []);
-    } catch (error) {
-        console.error('❌ Erro ao carregar especialidades do ticket:', error);
-        renderizarEspecialidadesDoTicket([]);
     }
+    
+    renderizarEspecialidadesDoTicket(specs || []);
 }
 
 function renderizarEspecialidadesDoTicket(specs) {
@@ -467,39 +383,26 @@ function abrirModalAdicionarEspecialidades() {
 }
 
 async function carregarEspecialidadesParaModal() {
-    try {
-        let specsDoTicket = [];
-        try {
-            specsDoTicket = await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/specs`) || [];
-        } catch (error) {
-            const relacoes = await suporteAPI.chamarAPI('/TicketSpecRelation');
-            const relacoesDoTicket = relacoes.filter(rel => rel.ticketId === parseInt(ticketSelecionado.id));
-            for (const relacao of relacoesDoTicket) {
-                try {
-                    const spec = await suporteAPI.chamarAPI(`/Spec/${relacao.specId}`);
-                    if (spec) specsDoTicket.push(spec);
-                } catch (err) {
-                    console.warn('⚠️ Erro ao carregar especialidade no modal:', relacao.specId);
-                }
-            }
+    let specsDoTicket = await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/specs`) || [];
+    
+    if (!specsDoTicket || specsDoTicket.length === 0) {
+        for (const spec of specsDoTicket) {
+            const spec = await suporteAPI.chamarAPI(`/Spec/${spec.id.toString()}`);
+            if (spec) specsDoTicket.push(spec);
         }
-        
-        const idsDoTicket = specsDoTicket.map(spec => spec.id);
-        const especialidadesDisponiveisParaAdicionar = especialidadesDisponiveis.filter(spec => !idsDoTicket.includes(spec.id));
-        const especialidadesOriginais = [...especialidadesDisponiveis];
-        especialidadesDisponiveis = especialidadesDisponiveisParaAdicionar;
-        renderizarEspecialidadesDisponiveis('modal');
-        renderizarEspecialidadesSelecionadas('modal');
-        especialidadesDisponiveis = especialidadesOriginais;
-        
-        if (especialidadesDisponiveisParaAdicionar.length === 0) {
-            const container = document.getElementById('modal-available-specs-list');
-            if (container) container.innerHTML = '<em style="color: #666;">Todas as especialidades já estão no ticket</em>';
-        }
-    } catch (error) {
-        console.error('❌ Erro ao carregar especialidades para o modal:', error);
+    }
+    
+    const idsDoTicket = specsDoTicket.map(spec => spec.id);
+    const especialidadesDisponiveisParaAdicionar = especialidadesDisponiveis.filter(spec => !idsDoTicket.includes(spec.id));
+    const especialidadesOriginais = [...especialidadesDisponiveis];
+    especialidadesDisponiveis = especialidadesDisponiveisParaAdicionar;
+    renderizarEspecialidadesDisponiveis('modal');
+    renderizarEspecialidadesSelecionadas('modal');
+    especialidadesDisponiveis = especialidadesOriginais;
+    
+    if (especialidadesDisponiveisParaAdicionar.length === 0) {
         const container = document.getElementById('modal-available-specs-list');
-        if (container) container.innerHTML = '<em style="color: #e74c3c;">Erro ao carregar especialidades</em>';
+        if (container) container.innerHTML = '<em style="color: #666;">Todas as especialidades já estão no ticket</em>';
     }
 }
 async function confirmarAdicionarEspecialidades() {
@@ -507,32 +410,22 @@ async function confirmarAdicionarEspecialidades() {
         return suporteAPI.mostrarMensagem('Selecione pelo menos uma especialidade', 'error');
     }
     
-    try {
-        for (const spec of especialidadesModalSelecionadas) {
-            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/addSpec`, 'PATCH', spec.id.toString());
-        }
-        await carregarEspecialidadesDoTicket(ticketSelecionado.id);
-        suporteAPI.mostrarMensagem(`${especialidadesModalSelecionadas.length} especialidade(s) adicionada(s)`, 'success');
-        suporteAPI.closeModal('manage-specs-modal');
-        especialidadesModalSelecionadas = [];
-    } catch (error) {
-        console.error('❌ Erro ao adicionar especialidades:', error);
-        suporteAPI.mostrarMensagem('Erro ao adicionar especialidades', 'error');
+    for (const spec of especialidadesModalSelecionadas) {
+        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/addSpec`, 'PATCH', spec.id.toString());
     }
+    await carregarEspecialidadesDoTicket(ticketSelecionado.id);
+    suporteAPI.mostrarMensagem(`${especialidadesModalSelecionadas.length} especialidade(s) adicionada(s)`, 'success');
+    suporteAPI.closeModal('manage-specs-modal');
+    especialidadesModalSelecionadas = [];
 }
 
 async function confirmarRemocaoEspecialidade(spec) {
     if (!ticketSelecionado) return;
     
     if (confirm(`Tem certeza que deseja remover a especialidade "${spec.name}" deste ticket?`)) {
-        try {
-            await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/removeSpec`, 'PATCH', spec.id.toString());
-            await carregarEspecialidadesDoTicket(ticketSelecionado.id);
-            suporteAPI.mostrarMensagem('Especialidade removida com sucesso', 'success');
-        } catch (error) {
-            console.error('❌ Erro ao remover especialidade:', error);
-            suporteAPI.mostrarMensagem('Erro ao remover especialidade', 'error');
-        }
+        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id}/removeSpec`, 'PATCH', spec.id.toString());
+        await carregarEspecialidadesDoTicket(ticketSelecionado.id);
+        suporteAPI.mostrarMensagem('Especialidade removida com sucesso', 'success');
     }
 }
 
