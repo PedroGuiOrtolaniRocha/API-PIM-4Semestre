@@ -70,10 +70,10 @@ public class TicketRepository :  ITicketRepository
         return await specs.ToListAsync();
     }
 
-    public async Task<int> GetOpenTicketCountByTecId(int userId)
+    public async Task<List<Ticket>> GetOpenTicketByTecId(int userId)
     {
         return await _context.Tickets.Where(x => 
             (x.Status == "Aberto" || x.Status == "Escalado") && 
-            x.TecUserId == userId).CountAsync();
+            x.TecUserId == userId).ToListAsync();
     }
 }

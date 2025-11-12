@@ -56,7 +56,7 @@ function finalizarInicializacaoTecnico() {
 }
 
 async function carregarTicketsTecnico() {
-    tickets = await suporteAPI.chamarAPI('/Ticket');
+    tickets = await suporteAPI.chamarAPI(`/Ticket/tec/${tecnicoAtual.id.toString()}`);
     suporteAPI.renderizarListaTickets(tickets, selecionarTicket);
 }
 
@@ -125,16 +125,6 @@ function configurarEntradaChat() {
     }
 }
 
-async function enviarMensagemSistema(ticketId, textoResolucao, ) {
-    
-    
-    await suporteAPI.chamarAPI(`/Ticket/${ticketId.toString()}/finish`, 'PATCH', textoResolucao);
-    await suporteAPI.carregarMensagens(ticketId, mensagens, () => {
-        suporteAPI.renderizarMensagensChat(mensagens);
-    });
-    suporteAPI.mostrarMensagem('Resolução registrada com sucesso', 'success');
-}
-
 function resolverTicket() {
     if (!ticketSelecionado) {
         suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
@@ -158,9 +148,13 @@ async function confirmarResolucaoTicket() {
     
     console.log('✅ Técnico confirmou resolução do ticket');
     
-    await enviarMensagemSistema(ticketSelecionado.id, `Resolução: ${textoResolucao}`, tecnicoAtual.id);
-    
+    // Finalizar o ticket com o texto de resolução
     await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id.toString()}/finish`, 'PATCH', textoResolucao);
+    
+    // Recarregar mensagens para mostrar a atualização
+    await suporteAPI.carregarMensagens(ticketSelecionado.id, mensagens, () => {
+        suporteAPI.renderizarMensagensChat(mensagens);
+    });
     
     document.getElementById('resolution-text').value = '';
     

@@ -312,16 +312,6 @@ async function pedirEscalacao() {
     suporteAPI.mostrarMensagem('Ticket escalado para técnico disponível', 'success');
 }
 
-async function encerrarTicket() {
-    if (!ticketSelecionado) return suporteAPI.mostrarMensagem('Selecione um ticket primeiro', 'error');
-    
-    if (confirm('Tem certeza que deseja encerrar este ticket?')) {
-        await suporteAPI.chamarAPI(`/Ticket/${ticketSelecionado.id.toString()}/finish`, 'PATCH');
-        await carregarTickets();
-        suporteAPI.mostrarMensagem('Ticket encerrado com sucesso', 'success');
-    }
-}
-
 async function criarTicket(dadosTicket) {
     const ticketCriado = await suporteAPI.chamarAPI('/Ticket', 'POST', {
         title: dadosTicket.title,

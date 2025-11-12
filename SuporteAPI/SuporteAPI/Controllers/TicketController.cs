@@ -95,4 +95,12 @@ public class TicketController: ControllerBase
         var tickets = await _ticketService.GetAllTicketsByUser(userId);
         return Ok(tickets);
     }
+
+    [HttpGet("tec/{tecId}", Name = "GetTicketsByTecId")]
+    [Authorize]
+    public async Task<IActionResult> GetTicketsByTecId(int tecId)
+    {
+        var tickets = await _ticketService.GetAllTicketsByTec(tecId);
+        return Ok(tickets);
+    }
 }

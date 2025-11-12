@@ -9,6 +9,7 @@ namespace SuporteAPI.Interface.Service
     {
         Task<Ticket> CreateTicket(TicketCreateDto ticket, int userId);
         Task<List<Ticket>> GetAllTicketsByUser(int userId);
+        Task<List<Ticket>> GetAllTicketsByTec(int userId);
         Task<List<Ticket>> GetAllTickets();
         Task<Ticket?> GetTicketById(int id);
         Task<Ticket> FinishTicket(int id, string resolution);

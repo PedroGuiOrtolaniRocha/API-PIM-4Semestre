@@ -12,7 +12,7 @@ public class TicketService : ITicketService
     private readonly ITicketRepository _ticketRepository;
     private readonly ITecRegisterRepository _registerRepository;
     private readonly ITicketSpecRelationRepository _ticketSpecRelationRepository;
-
+    
     public TicketService(IUserRepository userRepository, ITicketRepository ticketRepository, 
         ITecRegisterRepository registerRepository, ITicketSpecRelationRepository ticketSpecRelationRepository)
     {
@@ -21,7 +21,11 @@ public class TicketService : ITicketService
         _ticketSpecRelationRepository = ticketSpecRelationRepository;
         _registerRepository = registerRepository;
     }
-    
+    public async Task<List<Ticket>> GetAllTicketsByTec(int userId)
+    {
+        return await _ticketRepository.GetOpenTicketByTecId(userId);
+    }
+
     public async Task<Ticket> CreateTicket(TicketCreateDto ticket, int userId)
     {
         if (await _userRepository.GetUserById(userId) == null)
@@ -115,7 +119,7 @@ public class TicketService : ITicketService
         
         foreach (var userId in userIds)
         {
-            int ticketCount = await _ticketRepository.GetOpenTicketCountByTecId(userId);
+            int ticketCount = (await _ticketRepository.GetOpenTicketByTecId(userId)).Count();
             userTicketCounts.Add(userId, ticketCount);
             Console.WriteLine($"👤 Técnico {userId}: {ticketCount} tickets em andamento");
         }
